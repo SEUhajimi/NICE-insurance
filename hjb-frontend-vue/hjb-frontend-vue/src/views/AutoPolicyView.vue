@@ -5,7 +5,13 @@
       <el-button type="primary" @click="openAdd">+ Add Policy</el-button>
     </div>
 
-    <el-table :data="tableData" stripe style="width: 100%" v-loading="loading">
+    <div style="margin-bottom:16px">
+      <el-input v-model="search" placeholder="Search by Customer ID or status..." clearable style="width:320px">
+        <template #prefix><el-icon><Search /></el-icon></template>
+      </el-input>
+    </div>
+
+    <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
       <el-table-column prop="apId" label="Policy ID" width="100" />
       <el-table-column prop="hjbCustomerCustId" label="Customer ID" width="110" />
       <el-table-column prop="sdate" label="Start Date" />
@@ -58,14 +64,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 import { autoPolicyApi } from '../api'
 
 const tableData = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
+const search = ref('')
+
+const filteredData = computed(() => {
+  const q = search.value.toLowerCase()
+  if (!q) return tableData.value
+  return tableData.value.filter(r =>
+    String(r.hjbCustomerCustId).includes(q) ||
+    (r.status === 'C' ? 'current' : 'expired').includes(q)
+  )
+})
 
 const defaultForm = { apId: null, sdate: '', edate: '', amount: 0, status: 'C', hjbCustomerCustId: null }
 const form = ref({ ...defaultForm })

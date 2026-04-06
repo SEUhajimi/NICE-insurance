@@ -5,7 +5,13 @@
       <el-button type="primary" @click="openAdd">+ Add Invoice</el-button>
     </div>
 
-    <el-table :data="tableData" stripe style="width: 100%" v-loading="loading">
+    <div style="margin-bottom:16px">
+      <el-input v-model="search" placeholder="Search by Invoice ID or Policy ID..." clearable style="width:320px">
+        <template #prefix><el-icon><Search /></el-icon></template>
+      </el-input>
+    </div>
+
+    <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
       <el-table-column prop="iid" label="Invoice ID" width="100" />
       <el-table-column prop="idate" label="Invoice Date" />
       <el-table-column prop="due" label="Due Date" />
@@ -60,8 +66,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 import { invoiceApi } from '../api'
 
 const tableData = ref([])
@@ -70,6 +77,16 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const policyType = ref('auto')
 const policyId = ref(null)
+const search = ref('')
+
+const filteredData = computed(() => {
+  const q = search.value.toLowerCase()
+  if (!q) return tableData.value
+  return tableData.value.filter(r =>
+    String(r.iid || '').includes(q) ||
+    String(r.hjbAutopolicyApId || r.hjbHomepolicyHpId || '').includes(q)
+  )
+})
 
 const defaultForm = { iId: null, iDate: '', due: '', amount: 0, hjbHomepolicyHpId: null, hjbAutopolicyApId: null }
 const form = ref({ ...defaultForm })

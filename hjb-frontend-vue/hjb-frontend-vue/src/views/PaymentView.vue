@@ -5,7 +5,13 @@
       <el-button type="primary" @click="openAdd">+ Add Payment</el-button>
     </div>
 
-    <el-table :data="tableData" stripe style="width: 100%" v-loading="loading">
+    <div style="margin-bottom:16px">
+      <el-input v-model="search" placeholder="Search by Invoice ID or method..." clearable style="width:320px">
+        <template #prefix><el-icon><Search /></el-icon></template>
+      </el-input>
+    </div>
+
+    <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
       <el-table-column prop="pid" label="Payment ID" width="110" />
       <el-table-column prop="hjbInvoiceIId" label="Invoice ID" width="100" />
       <el-table-column prop="method" label="Method" width="100">
@@ -54,14 +60,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 import { paymentApi } from '../api'
 
 const tableData = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
+const search = ref('')
+
+const filteredData = computed(() => {
+  const q = search.value.toLowerCase()
+  if (!q) return tableData.value
+  return tableData.value.filter(r =>
+    String(r.hjbInvoiceIId || '').includes(q) ||
+    (r.method || '').toLowerCase().includes(q)
+  )
+})
 
 const defaultForm = { pId: null, hjbInvoiceIId: null, method: 'Credit', payAmount: 0, payDate: '' }
 const form = ref({ ...defaultForm })

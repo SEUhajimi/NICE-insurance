@@ -10,3 +10,4 @@ public class LoginResponse {
     private String role;
     private String username;
 }
+

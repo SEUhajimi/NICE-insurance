@@ -5,7 +5,13 @@
       <el-button type="primary" @click="openAdd">+ Add Home</el-button>
     </div>
 
-    <el-table :data="tableData" stripe style="width: 100%" v-loading="loading">
+    <div style="margin-bottom:16px">
+      <el-input v-model="search" placeholder="Search by Policy ID or type..." clearable style="width:320px">
+        <template #prefix><el-icon><Search /></el-icon></template>
+      </el-input>
+    </div>
+
+    <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
       <el-table-column prop="homeId" label="Home ID" width="90" />
       <el-table-column prop="hjbHomepolicyHpId" label="Policy ID" width="90" />
       <el-table-column prop="pdate" label="Purchase Date" width="120" />
@@ -94,14 +100,26 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 import { homeApi } from '../api'
 
 const tableData = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
+const search = ref('')
+
+const HOME_TYPES = { S: 'single', M: 'multi', C: 'condo', T: 'town' }
+const filteredData = computed(() => {
+  const q = search.value.toLowerCase()
+  if (!q) return tableData.value
+  return tableData.value.filter(r =>
+    String(r.hjbHomepolicyHpId).includes(q) ||
+    (HOME_TYPES[r.homeType] || '').includes(q)
+  )
+})
 
 const defaultForm = { homeId: null, pdate: '', pvalue: 0, area: 0, homeType: 'S', afn: 0, hss: 0, sp: null, basement: 0, hjbHomepolicyHpId: null }
 const form = ref({ ...defaultForm })

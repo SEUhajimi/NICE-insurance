@@ -5,7 +5,13 @@
       <el-button type="primary" @click="openAdd">+ Add Driver</el-button>
     </div>
 
-    <el-table :data="tableData" stripe style="width: 100%" v-loading="loading">
+    <div style="margin-bottom:16px">
+      <el-input v-model="search" placeholder="Search by name or license..." clearable style="width:320px">
+        <template #prefix><el-icon><Search /></el-icon></template>
+      </el-input>
+    </div>
+
+    <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
       <el-table-column prop="driverLicense" label="License" width="120" />
       <el-table-column prop="fname" label="First Name" />
       <el-table-column prop="lname" label="Last Name" />
@@ -42,14 +48,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 import { driverApi } from '../api'
 
 const tableData = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
+const search = ref('')
+
+const filteredData = computed(() => {
+  const q = search.value.toLowerCase()
+  if (!q) return tableData.value
+  return tableData.value.filter(r =>
+    (r.fname + ' ' + r.lname).toLowerCase().includes(q) ||
+    (r.driverLicense || '').toLowerCase().includes(q)
+  )
+})
 
 const defaultForm = { driverLicense: '', fname: '', lname: '', birthday: '' }
 const form = ref({ ...defaultForm })

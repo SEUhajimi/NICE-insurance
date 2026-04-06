@@ -57,6 +57,7 @@ async function handleLogin() {
     if (res.code === 1 && res.data?.token) {
       localStorage.setItem('token', res.data.token)
       localStorage.setItem('username', res.data.username)
+      localStorage.setItem('role', 'EMPLOYEE')
       router.push('/customers')
     } else {
       errorMsg.value = res.msg || 'Login failed'

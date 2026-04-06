@@ -5,7 +5,13 @@
       <el-button type="primary" @click="openAdd">+ Add Vehicle</el-button>
     </div>
 
-    <el-table :data="tableData" stripe style="width: 100%" v-loading="loading">
+    <div style="margin-bottom:16px">
+      <el-input v-model="search" placeholder="Search by VIN or make/model..." clearable style="width:320px">
+        <template #prefix><el-icon><Search /></el-icon></template>
+      </el-input>
+    </div>
+
+    <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
       <el-table-column prop="vin" label="VIN" width="200" />
       <el-table-column prop="mmy" label="Make-Model-Year" />
       <el-table-column prop="status" label="Status" width="100">
@@ -50,14 +56,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 import { vehicleApi } from '../api'
 
 const tableData = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
+const search = ref('')
+
+const filteredData = computed(() => {
+  const q = search.value.toLowerCase()
+  if (!q) return tableData.value
+  return tableData.value.filter(r =>
+    (r.vin || '').toLowerCase().includes(q) ||
+    (r.mmy || '').toLowerCase().includes(q)
+  )
+})
 
 const defaultForm = { vin: '', mmy: '', status: 'O', hjbAutopolicyApId: null }
 const form = ref({ ...defaultForm })

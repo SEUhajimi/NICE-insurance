@@ -76,6 +76,15 @@ export const paymentApi = {
   delete: (id) => request.delete(`/payments/${id}`)
 }
 
+// ========== Customer Portal ==========
+export const portalApi = {
+  myProfile:       () => request.get('/portal/my-profile'),
+  myAutoPolicies:  () => request.get('/portal/my-policies/auto'),
+  myHomePolicies:  () => request.get('/portal/my-policies/home'),
+  myInvoices:      () => request.get('/portal/my-invoices'),
+  makePayment:     (data) => request.post('/portal/payments', data),
+}
+
 // ========== Employee ==========
 export const employeeApi = {
   findAll: () => request.get('/admin/employees'),

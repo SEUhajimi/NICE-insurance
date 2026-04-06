@@ -5,7 +5,13 @@
       <el-button type="primary" @click="openAdd">+ Add Link</el-button>
     </div>
 
-    <el-table :data="tableData" stripe style="width: 100%" v-loading="loading">
+    <div style="margin-bottom:16px">
+      <el-input v-model="search" placeholder="Search by VIN or license..." clearable style="width:320px">
+        <template #prefix><el-icon><Search /></el-icon></template>
+      </el-input>
+    </div>
+
+    <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
       <el-table-column prop="hjbVehicleVin" label="Vehicle VIN" />
       <el-table-column prop="hjbDriverDriverLicense" label="Driver License" />
       <el-table-column label="Actions" width="100" fixed="right">
@@ -33,13 +39,24 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 import { vehicleDriverApi } from '../api'
 
 const tableData = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
+const search = ref('')
+
+const filteredData = computed(() => {
+  const q = search.value.toLowerCase()
+  if (!q) return tableData.value
+  return tableData.value.filter(r =>
+    (r.hjbVehicleVin || '').toLowerCase().includes(q) ||
+    (r.hjbDriverDriverLicense || '').toLowerCase().includes(q)
+  )
+})
 
 const form = ref({ hjbVehicleVin: '', hjbDriverDriverLicense: '' })
 
