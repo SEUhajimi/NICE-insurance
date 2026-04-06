@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --primary: #2563eb;
+  --primary-light: #3b82f6;
+  --primary-dark: #1d4ed8;
+  --bg: #f8fafc;
+  --sidebar-bg: #0f172a;
+  --sidebar-text: #94a3b8;
+  --sidebar-active: #ffffff;
+  --card-bg: #ffffff;
+  --text: #1e293b;
+  --text-secondary: #64748b;
+  --border: #e2e8f0;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Override Element Plus defaults */
+.el-button--primary {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.el-table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.el-table th.el-table__cell {
+  background-color: #f1f5f9 !important;
+  color: var(--text) !important;
+  font-weight: 600;
+}
