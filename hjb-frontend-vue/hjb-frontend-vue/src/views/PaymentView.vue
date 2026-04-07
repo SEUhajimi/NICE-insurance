@@ -12,7 +12,7 @@
     </div>
 
     <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
-      <el-table-column prop="pid" label="Payment ID" width="110" />
+      <el-table-column prop="pId" label="Payment ID" width="110" />
       <el-table-column prop="hjbInvoiceIId" label="Invoice ID" width="100" />
       <el-table-column prop="method" label="Method" width="100">
         <template #default="{ row }">
@@ -26,7 +26,7 @@
       <el-table-column label="Actions" width="160" fixed="right">
         <template #default="{ row }">
           <el-button size="small" @click="openEdit(row)">Edit</el-button>
-          <el-button size="small" type="danger" @click="handleDelete(row.pid)">Delete</el-button>
+          <el-button size="small" type="danger" @click="handleDelete(row.pId)">Delete</el-button>
         </template>
       </el-table-column>
     </el-table>

@@ -2,6 +2,7 @@ package com.hjb.nice.server.mapper;
 
 import com.hjb.nice.entity.AutoPolicy;
 import org.apache.ibatis.annotations.*;
+import java.time.LocalDate;
 import java.util.List;
 
 @Mapper
@@ -26,4 +27,12 @@ public interface AutoPolicyMapper {
 
     @Delete("DELETE FROM hjb_autopolicy WHERE AP_ID = #{apId}")
     void deleteById(Integer apId);
+
+    @Update("UPDATE hjb_autopolicy SET Status='T' WHERE EDATE < #{today} AND Status='C'")
+    int updateExpired(@Param("today") LocalDate today);
+
+    @Insert("INSERT INTO hjb_autopolicy(SDATE, EDATE, Amount, Status, HJB_CUSTOMER_CUST_ID) " +
+            "VALUES(#{sdate}, #{edate}, #{amount}, #{status}, #{hjbCustomerCustId})")
+    @Options(useGeneratedKeys = true, keyProperty = "apId")
+    void insertAutoId(AutoPolicy autoPolicy);
 }

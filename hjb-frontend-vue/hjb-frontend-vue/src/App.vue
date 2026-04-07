@@ -53,14 +53,17 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
 
 const layout = computed(() => route.meta.layout || 'admin')
-const username = computed(() => localStorage.getItem('username') || '')
+const username = ref(localStorage.getItem('username') || '')
+watch(route, () => {
+  username.value = localStorage.getItem('username') || ''
+})
 
 const menuItems = [
   { path: '/customers',      label: 'Customers',       icon: '👥' },

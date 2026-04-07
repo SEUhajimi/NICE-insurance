@@ -9,12 +9,11 @@ public class CustomerRegisterRequest {
     private String password;
     private String email;
 
-    // 客户基本信息
+    // 客户基本信息（暂存于 customer_account，下单时同步到 hjb_customer）
     private String fname;
     private String lname;
     private String gender;
     private String maritalStatus;
-    private String custType;
     private String addrStreet;
     private String addrCity;
     private String addrState;

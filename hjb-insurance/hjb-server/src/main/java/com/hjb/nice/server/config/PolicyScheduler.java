@@ -1,0 +1,29 @@
+package com.hjb.nice.server.config;
+
+import com.hjb.nice.server.mapper.AutoPolicyMapper;
+import com.hjb.nice.server.mapper.HomePolicyMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+
+/**
+ * 每天凌晨 1 点检查过期保单，将 Status 从 'C' 更新为 'T'
+ */
+@Component
+public class PolicyScheduler {
+
+    @Autowired private AutoPolicyMapper autoPolicyMapper;
+    @Autowired private HomePolicyMapper homePolicyMapper;
+
+    @Scheduled(cron = "0 0 1 * * *")
+    public void expirePolicies() {
+        LocalDate today = LocalDate.now();
+        int auto = autoPolicyMapper.updateExpired(today);
+        int home = homePolicyMapper.updateExpired(today);
+        if (auto + home > 0) {
+            System.out.printf("[PolicyScheduler] Expired %d auto + %d home policies%n", auto, home);
+        }
+    }
+}

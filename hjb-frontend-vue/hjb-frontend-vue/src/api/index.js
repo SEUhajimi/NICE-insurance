@@ -82,7 +82,9 @@ export const portalApi = {
   myAutoPolicies:  () => request.get('/portal/my-policies/auto'),
   myHomePolicies:  () => request.get('/portal/my-policies/home'),
   myInvoices:      () => request.get('/portal/my-invoices'),
+  myPayments:      () => request.get('/portal/my-payments'),
   makePayment:     (data) => request.post('/portal/payments', data),
+  purchasePolicy:  (data) => request.post('/portal/purchase', data),
 }
 
 // ========== Employee ==========

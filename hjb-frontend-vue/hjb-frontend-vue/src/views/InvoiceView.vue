@@ -12,8 +12,8 @@
     </div>
 
     <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
-      <el-table-column prop="iid" label="Invoice ID" width="100" />
-      <el-table-column prop="idate" label="Invoice Date" />
+      <el-table-column prop="iId" label="Invoice ID" width="100" />
+      <el-table-column prop="iDate" label="Invoice Date" />
       <el-table-column prop="due" label="Due Date" />
       <el-table-column prop="amount" label="Amount" width="120">
         <template #default="{ row }">${{ row.amount }}</template>

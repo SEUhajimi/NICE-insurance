@@ -24,6 +24,9 @@ public interface PaymentMapper {
     @Delete("DELETE FROM hjb_payment WHERE P_ID = #{pId}")
     void deleteById(Integer pId);
 
+    @Select("SELECT * FROM hjb_payment WHERE HJB_INVOICE_I_ID = #{invoiceId}")
+    List<Payment> findByInvoiceId(Integer invoiceId);
+
     // 客户支付时使用，P_ID 由数据库 AUTO_INCREMENT 生成
     @Insert("INSERT INTO hjb_payment(Method, HJB_INVOICE_I_ID, Pay_Amount, Pay_Date) " +
             "VALUES(#{method}, #{hjbInvoiceIId}, #{payAmount}, #{payDate})")

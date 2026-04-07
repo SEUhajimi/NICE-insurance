@@ -3,6 +3,7 @@ package com.hjb.nice.server.controller.auth;
 import com.hjb.nice.dto.CustomerRegisterRequest;
 import com.hjb.nice.dto.LoginRequest;
 import com.hjb.nice.dto.LoginResponse;
+import com.hjb.nice.dto.ResetPasswordRequest;
 import com.hjb.nice.result.Result;
 import com.hjb.nice.server.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,6 +35,13 @@ public class AuthController {
     @PostMapping("/customer/register")
     public Result<Void> customerRegister(@RequestBody CustomerRegisterRequest request) {
         authService.customerRegister(request);
+        return Result.success();
+    }
+
+    @Operation(summary = "客户找回密码", description = "验证用户名和邮箱，重置密码")
+    @PostMapping("/customer/reset-password")
+    public Result<Void> resetPassword(@RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
         return Result.success();
     }
 }

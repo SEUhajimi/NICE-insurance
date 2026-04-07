@@ -18,6 +18,7 @@
             </el-form-item>
             <div v-if="loginError" class="error-msg">{{ loginError }}</div>
             <el-button type="primary" class="submit-btn" :loading="loginLoading" @click="handleLogin">Sign In</el-button>
+            <div class="forgot-link" @click="activeTab = 'reset'">Forgot password?</div>
           </el-form>
         </el-tab-pane>
 
@@ -51,22 +52,13 @@
                 </el-select>
               </el-form-item>
             </div>
-            <div class="form-row">
-              <el-form-item label="Marital Status">
-                <el-select v-model="regForm.maritalStatus" style="width:100%">
-                  <el-option label="Single" value="S" />
-                  <el-option label="Married" value="M" />
-                  <el-option label="Widowed" value="W" />
-                </el-select>
-              </el-form-item>
-              <el-form-item label="Insurance Type">
-                <el-select v-model="regForm.custType" style="width:100%">
-                  <el-option label="Auto" value="A" />
-                  <el-option label="Home" value="H" />
-                  <el-option label="Both" value="B" />
-                </el-select>
-              </el-form-item>
-            </div>
+            <el-form-item label="Marital Status">
+              <el-select v-model="regForm.maritalStatus" style="width:100%">
+                <el-option label="Single" value="S" />
+                <el-option label="Married" value="M" />
+                <el-option label="Widowed" value="W" />
+              </el-select>
+            </el-form-item>
             <el-form-item label="Street Address">
               <el-input v-model="regForm.addrStreet" placeholder="123 Main St" />
             </el-form-item>
@@ -86,6 +78,26 @@
             <div v-if="regError" class="error-msg">{{ regError }}</div>
             <div v-if="regSuccess" class="success-msg">Account created! You can now sign in.</div>
             <el-button type="primary" class="submit-btn" :loading="regLoading" @click="handleRegister">Create Account</el-button>
+          </el-form>
+        </el-tab-pane>
+
+        <!-- Reset Password Tab -->
+        <el-tab-pane label="Reset Password" name="reset">
+          <el-form :model="resetForm" label-position="top" class="auth-form">
+            <p class="reset-hint">Enter your username and registered email to reset your password.</p>
+            <el-form-item label="Username">
+              <el-input v-model="resetForm.username" placeholder="Your username" />
+            </el-form-item>
+            <el-form-item label="Email">
+              <el-input v-model="resetForm.email" placeholder="Registered email" />
+            </el-form-item>
+            <el-form-item label="New Password">
+              <el-input v-model="resetForm.newPassword" type="password" show-password placeholder="New password" />
+            </el-form-item>
+            <div v-if="resetError" class="error-msg">{{ resetError }}</div>
+            <div v-if="resetSuccess" class="success-msg">Password reset! You can now sign in.</div>
+            <el-button type="primary" class="submit-btn" :loading="resetLoading" @click="handleReset">Reset Password</el-button>
+            <div class="forgot-link" @click="activeTab = 'login'">Back to Sign In</div>
           </el-form>
         </el-tab-pane>
       </el-tabs>
@@ -144,7 +156,7 @@ async function handleLogin() {
 const regForm = ref({
   username: '', password: '', email: '',
   fname: '', lname: '', gender: 'M',
-  maritalStatus: 'S', custType: 'A',
+  maritalStatus: 'S',
   addrStreet: '', addrCity: '', addrState: '', zipcode: ''
 })
 const regError = ref('')
@@ -168,6 +180,34 @@ async function handleRegister() {
     regError.value = 'Registration failed. Please try again.'
   } finally {
     regLoading.value = false
+  }
+}
+
+// Reset Password
+const resetForm = ref({ username: '', email: '', newPassword: '' })
+const resetError = ref('')
+const resetSuccess = ref(false)
+const resetLoading = ref(false)
+
+async function handleReset() {
+  resetError.value = ''
+  resetSuccess.value = false
+  resetLoading.value = true
+  try {
+    const res = await request.post('/auth/customer/reset-password', resetForm.value)
+    if (res.code === 1) {
+      resetSuccess.value = true
+      setTimeout(() => {
+        activeTab.value = 'login'
+        loginForm.value.username = resetForm.value.username
+      }, 1500)
+    } else {
+      resetError.value = res.msg || 'Reset failed'
+    }
+  } catch {
+    resetError.value = 'Reset failed. Please check your username and email.'
+  } finally {
+    resetLoading.value = false
   }
 }
 </script>
@@ -207,6 +247,15 @@ async function handleRegister() {
 .form-row .el-form-item { margin-bottom: 16px; }
 
 .submit-btn { width: 100%; margin-top: 8px; }
+
+.forgot-link {
+  text-align: center; margin-top: 12px;
+  color: var(--primary-light); font-size: 13px;
+  cursor: pointer;
+}
+.forgot-link:hover { text-decoration: underline; }
+
+.reset-hint { color: var(--text-secondary); font-size: 13px; margin: 0 0 8px; }
 
 .error-msg { color: #f87171; font-size: 13px; text-align: center; margin: 4px 0; }
 .success-msg { color: #4ade80; font-size: 13px; text-align: center; margin: 4px 0; }

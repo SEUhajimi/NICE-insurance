@@ -3,6 +3,7 @@ package com.hjb.nice.server.service.impl;
 import com.hjb.nice.dto.CustomerRegisterRequest;
 import com.hjb.nice.dto.LoginRequest;
 import com.hjb.nice.dto.LoginResponse;
+import com.hjb.nice.dto.ResetPasswordRequest;
 import com.hjb.nice.entity.Customer;
 import com.hjb.nice.entity.CustomerAccount;
 import com.hjb.nice.entity.Employee;
@@ -64,25 +65,29 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("邮箱已被注册");
         }
 
-        // 1. 创建 Customer 记录
-        Customer customer = new Customer();
-        customer.setFname(request.getFname());
-        customer.setLname(request.getLname());
-        customer.setGender(request.getGender());
-        customer.setMaritalStatus(request.getMaritalStatus());
-        customer.setCustType(request.getCustType());
-        customer.setAddrStreet(request.getAddrStreet());
-        customer.setAddrCity(request.getAddrCity());
-        customer.setAddrState(request.getAddrState());
-        customer.setZipcode(request.getZipcode());
-        customerMapper.insertForRegister(customer);  // custId 由数据库生成并回填
-
-        // 2. 创建 CustomerAccount 记录（密码 BCrypt 加密）
+        // 只创建账号，个人信息暂存于此，下单时才创建 hjb_customer 记录
         CustomerAccount account = new CustomerAccount();
-        account.setCustomerId(customer.getCustId());
+        account.setCustomerId(null);
         account.setUsername(request.getUsername());
         account.setPassword(passwordEncoder.encode(request.getPassword()));
         account.setEmail(request.getEmail());
+        account.setFname(request.getFname());
+        account.setLname(request.getLname());
+        account.setGender(request.getGender());
+        account.setMaritalStatus(request.getMaritalStatus());
+        account.setAddrStreet(request.getAddrStreet());
+        account.setAddrCity(request.getAddrCity());
+        account.setAddrState(request.getAddrState());
+        account.setZipcode(request.getZipcode());
         customerAccountMapper.insert(account);
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+        CustomerAccount account = customerAccountMapper.findByUsername(request.getUsername());
+        if (account == null || !account.getEmail().equalsIgnoreCase(request.getEmail())) {
+            throw new RuntimeException("用户名或邮箱不匹配");
+        }
+        customerAccountMapper.updatePassword(account.getAccountId(), passwordEncoder.encode(request.getNewPassword()));
     }
 }

@@ -29,4 +29,9 @@ public interface InvoiceMapper {
 
     @Select("SELECT * FROM hjb_invoice WHERE HJB_HOMEPOLICY_HP_ID = #{hpId}")
     List<Invoice> findByHomePolicyId(Integer hpId);
+
+    @Insert("INSERT INTO hjb_invoice(I_Date, Due, Amount, HJB_HOMEPOLICY_HP_ID, HJB_AUTOPOLICY_AP_ID) " +
+            "VALUES(#{iDate}, #{due}, #{amount}, #{hjbHomepolicyHpId}, #{hjbAutopolicyApId})")
+    @Options(useGeneratedKeys = true, keyProperty = "iId")
+    void insertAutoId(Invoice invoice);
 }
