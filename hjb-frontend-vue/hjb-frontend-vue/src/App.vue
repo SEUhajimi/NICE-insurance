@@ -76,6 +76,7 @@ const menuItems = [
   { path: '/payments',       label: 'Payments',        icon: '💳' },
   { path: '/vehicle-drivers',label: 'Vehicle-Drivers', icon: '🔗' },
   { path: '/employees',      label: 'Employees',       icon: '👔' },
+  { path: '/plans',          label: 'Insurance Plans', icon: '📋' },
 ]
 
 function logout() {

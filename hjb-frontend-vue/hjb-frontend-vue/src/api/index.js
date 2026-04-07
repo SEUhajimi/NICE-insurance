@@ -94,6 +94,15 @@ export const employeeApi = {
   delete: (id) => request.delete(`/admin/employees/${id}`)
 }
 
+// ========== Insurance Plans ==========
+export const planApi = {
+  findActive: () => request.get('/plans'),
+  findAll:    () => request.get('/admin/plans'),
+  add:        (data) => request.post('/admin/plans', data),
+  update:     (data) => request.put('/admin/plans', data),
+  delete:     (id)   => request.delete(`/admin/plans/${id}`)
+}
+
 // ========== Vehicle-Driver ==========
 export const vehicleDriverApi = {
   findAll: () => request.get('/vehicle-drivers'),

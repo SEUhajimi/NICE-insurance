@@ -7,22 +7,48 @@
       </div>
 
       <el-tabs v-model="activeTab" class="auth-tabs">
-        <!-- Login Tab -->
+
+        <!-- Sign In Tab -->
         <el-tab-pane label="Sign In" name="login">
-          <el-form :model="loginForm" label-position="top" class="auth-form">
-            <el-form-item label="Username">
-              <el-input v-model="loginForm.username" placeholder="Your username" />
-            </el-form-item>
-            <el-form-item label="Password">
-              <el-input v-model="loginForm.password" type="password" show-password placeholder="Your password" />
-            </el-form-item>
-            <div v-if="loginError" class="error-msg">{{ loginError }}</div>
-            <el-button type="primary" class="submit-btn" :loading="loginLoading" @click="handleLogin">Sign In</el-button>
-            <div class="forgot-link" @click="activeTab = 'reset'">Forgot password?</div>
-          </el-form>
+          <div v-if="!showReset">
+            <el-form :model="loginForm" label-position="top" class="auth-form">
+              <el-form-item label="Username">
+                <el-input v-model="loginForm.username" placeholder="Your username" />
+              </el-form-item>
+              <el-form-item label="Password">
+                <el-input v-model="loginForm.password" type="password" show-password placeholder="Your password" />
+              </el-form-item>
+              <div v-if="loginError" class="error-msg">{{ loginError }}</div>
+              <el-button type="primary" class="submit-btn" :loading="loginLoading" @click="handleLogin">Sign In</el-button>
+              <div class="forgot-link" @click="showReset = true">Forgot password?</div>
+            </el-form>
+          </div>
+
+          <!-- Inline Reset Password Panel -->
+          <div v-else class="reset-panel">
+            <div class="reset-back" @click="showReset = false">← Back to Sign In</div>
+            <h3 class="reset-title">Reset Password</h3>
+            <p class="reset-hint">Enter your username and registered email to set a new password.</p>
+            <el-form :model="resetForm" label-position="top" class="auth-form">
+              <el-form-item label="Username">
+                <el-input v-model="resetForm.username" placeholder="Your username" />
+              </el-form-item>
+              <el-form-item label="Email">
+                <el-input v-model="resetForm.email" placeholder="Registered email" />
+              </el-form-item>
+              <el-form-item label="New Password">
+                <el-input v-model="resetForm.newPassword" type="password" show-password placeholder="New password" />
+              </el-form-item>
+              <div v-if="resetError" class="error-msg">{{ resetError }}</div>
+              <div v-if="resetSuccess" class="success-msg">Password reset! Please sign in.</div>
+              <el-button type="primary" class="submit-btn" :loading="resetLoading" @click="handleReset">
+                Reset Password
+              </el-button>
+            </el-form>
+          </div>
         </el-tab-pane>
 
-        <!-- Register Tab -->
+        <!-- Sign Up Tab -->
         <el-tab-pane label="Sign Up" name="register">
           <el-form :model="regForm" label-position="top" class="auth-form">
             <div class="form-row">
@@ -77,29 +103,12 @@
             </div>
             <div v-if="regError" class="error-msg">{{ regError }}</div>
             <div v-if="regSuccess" class="success-msg">Account created! You can now sign in.</div>
-            <el-button type="primary" class="submit-btn" :loading="regLoading" @click="handleRegister">Create Account</el-button>
+            <el-button type="primary" class="submit-btn" :loading="regLoading" @click="handleRegister">
+              Create Account
+            </el-button>
           </el-form>
         </el-tab-pane>
 
-        <!-- Reset Password Tab -->
-        <el-tab-pane label="Reset Password" name="reset">
-          <el-form :model="resetForm" label-position="top" class="auth-form">
-            <p class="reset-hint">Enter your username and registered email to reset your password.</p>
-            <el-form-item label="Username">
-              <el-input v-model="resetForm.username" placeholder="Your username" />
-            </el-form-item>
-            <el-form-item label="Email">
-              <el-input v-model="resetForm.email" placeholder="Registered email" />
-            </el-form-item>
-            <el-form-item label="New Password">
-              <el-input v-model="resetForm.newPassword" type="password" show-password placeholder="New password" />
-            </el-form-item>
-            <div v-if="resetError" class="error-msg">{{ resetError }}</div>
-            <div v-if="resetSuccess" class="success-msg">Password reset! You can now sign in.</div>
-            <el-button type="primary" class="submit-btn" :loading="resetLoading" @click="handleReset">Reset Password</el-button>
-            <div class="forgot-link" @click="activeTab = 'login'">Back to Sign In</div>
-          </el-form>
-        </el-tab-pane>
       </el-tabs>
     </div>
   </div>
@@ -114,6 +123,7 @@ const router = useRouter()
 const route = useRoute()
 
 const activeTab = ref('login')
+const showReset = ref(false)
 
 onMounted(() => {
   if (route.query.tab === 'register') activeTab.value = 'register'
@@ -197,15 +207,13 @@ async function handleReset() {
     const res = await request.post('/auth/customer/reset-password', resetForm.value)
     if (res.code === 1) {
       resetSuccess.value = true
-      setTimeout(() => {
-        activeTab.value = 'login'
-        loginForm.value.username = resetForm.value.username
-      }, 1500)
+      loginForm.value.username = resetForm.value.username
+      setTimeout(() => { showReset.value = false }, 1500)
     } else {
       resetError.value = res.msg || 'Reset failed'
     }
   } catch {
-    resetError.value = 'Reset failed. Please check your username and email.'
+    resetError.value = 'Reset failed. Check your username and email.'
   } finally {
     resetLoading.value = false
   }
@@ -249,13 +257,25 @@ async function handleReset() {
 .submit-btn { width: 100%; margin-top: 8px; }
 
 .forgot-link {
-  text-align: center; margin-top: 12px;
-  color: var(--primary-light); font-size: 13px;
-  cursor: pointer;
+  text-align: center; margin-top: 14px;
+  color: #94a3b8; font-size: 12px; cursor: pointer;
 }
-.forgot-link:hover { text-decoration: underline; }
+.forgot-link:hover { color: #60a5fa; text-decoration: underline; }
 
-.reset-hint { color: var(--text-secondary); font-size: 13px; margin: 0 0 8px; }
+/* Reset inline panel */
+.reset-panel { padding-top: 8px; }
+
+.reset-back {
+  color: #60a5fa; font-size: 13px; cursor: pointer;
+  margin-bottom: 20px; display: inline-block;
+}
+.reset-back:hover { text-decoration: underline; }
+
+.reset-title {
+  font-size: 18px; font-weight: 700; color: var(--text);
+  margin: 0 0 8px;
+}
+.reset-hint { color: var(--text-secondary); font-size: 13px; margin: 0 0 16px; line-height: 1.5; }
 
 .error-msg { color: #f87171; font-size: 13px; text-align: center; margin: 4px 0; }
 .success-msg { color: #4ade80; font-size: 13px; text-align: center; margin: 4px 0; }

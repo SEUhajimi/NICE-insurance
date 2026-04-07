@@ -282,7 +282,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { portalApi } from '../api'
+import { portalApi, planApi } from '../api'
 
 const username = localStorage.getItem('username') || ''
 const activeTab = ref('profile')
@@ -303,17 +303,27 @@ const filteredInvoices = computed(() => {
   return invoices.value
 })
 
-// Plans
-const plans = [
-  { id: 'auto-basic',    type: 'AUTO', typeLabel: 'Auto Insurance', icon: '🚗', name: 'Basic',    amount: 800,  features: ['Liability coverage', 'Collision coverage', '24/7 roadside assistance'] },
-  { id: 'auto-standard', type: 'AUTO', typeLabel: 'Auto Insurance', icon: '🚗', name: 'Standard', amount: 1200, features: ['All Basic benefits', 'Comprehensive coverage', 'Rental reimbursement'] },
-  { id: 'auto-premium',  type: 'AUTO', typeLabel: 'Auto Insurance', icon: '🚗', name: 'Premium',  amount: 1800, features: ['All Standard benefits', 'New car replacement', 'Accident forgiveness'] },
-  { id: 'home-basic',    type: 'HOME', typeLabel: 'Home Insurance', icon: '🏠', name: 'Basic',    amount: 600,  features: ['Dwelling protection', 'Personal property', 'Liability coverage'] },
-  { id: 'home-standard', type: 'HOME', typeLabel: 'Home Insurance', icon: '🏠', name: 'Standard', amount: 900,  features: ['All Basic benefits', 'Additional living expenses', 'Medical payments'] },
-  { id: 'home-premium',  type: 'HOME', typeLabel: 'Home Insurance', icon: '🏠', name: 'Premium',  amount: 1400, features: ['All Standard benefits', 'Equipment breakdown', 'Identity theft protection'] },
-]
+// Plans (loaded from API)
+const plans = ref([])
 const selectedPlan = ref(null)
 const purchasing = ref(false)
+
+const loadPlans = async () => {
+  try {
+    const res = await planApi.findActive()
+    plans.value = (res.data || []).map(p => ({
+      id: `${p.planType}-${p.planId}`,
+      type: p.planType,
+      typeLabel: p.planType === 'AUTO' ? 'Auto Insurance' : 'Home Insurance',
+      icon: p.planType === 'AUTO' ? '🚗' : '🏠',
+      name: p.planName,
+      amount: Number(p.amount),
+      features: (p.features || '').split(',').map(f => f.trim()).filter(Boolean)
+    }))
+  } catch {
+    // fallback: show empty
+  }
+}
 
 async function submitPurchase() {
   purchasing.value = true
@@ -354,6 +364,8 @@ const detailDialog = ref(false)
 const detailInvoice = ref(null)
 
 onMounted(async () => {
+  loadPlans()
+
   const [profileRes, autoRes, homeRes] = await Promise.all([
     portalApi.myProfile(),
     portalApi.myAutoPolicies(),

@@ -52,12 +52,12 @@
           <div class="hero-card hc1">
             <div class="hc-icon">🚗</div>
             <div class="hc-label">Auto Coverage</div>
-            <div class="hc-val">From $800/yr</div>
+            <div class="hc-val">From ${{ autoFromPrice }}/yr</div>
           </div>
           <div class="hero-card hc2">
             <div class="hc-icon">🏠</div>
             <div class="hc-label">Home Coverage</div>
-            <div class="hc-val">From $600/yr</div>
+            <div class="hc-val">From ${{ homeFromPrice }}/yr</div>
           </div>
           <div class="hero-card hc3">
             <div class="hc-icon">🛡️</div>
@@ -101,15 +101,22 @@
         <p class="section-sub">Whether you're protecting your car, your home, or both—we have a plan that fits your life and your budget.</p>
 
         <div class="product-grid">
+          <!-- Auto Insurance Card -->
           <div class="product-card">
             <div class="product-header auto">
               <span class="product-icon-lg">🚗</span>
               <div>
                 <div class="product-type">Auto Insurance</div>
-                <div class="product-from">Starting from <strong>$800</strong>/yr</div>
+                <div class="product-from">Starting from <strong>${{ autoFromPrice }}</strong>/yr</div>
               </div>
             </div>
-            <ul class="product-features">
+            <div v-if="autoPlans.length > 0" class="plan-tiers">
+              <div v-for="p in autoPlans" :key="p.planId" class="plan-tier">
+                <span class="tier-name">{{ p.planName }}</span>
+                <span class="tier-price">${{ p.amount }}/yr</span>
+              </div>
+            </div>
+            <ul v-else class="product-features">
               <li>Collision &amp; Comprehensive</li>
               <li>Bodily Injury Liability</li>
               <li>Uninsured Motorist Protection</li>
@@ -119,6 +126,7 @@
             <button class="btn-product" @click="$router.push('/customer-login?tab=register')">Get Auto Quote</button>
           </div>
 
+          <!-- Bundle Card (always static) -->
           <div class="product-card featured-card">
             <div class="featured-ribbon">Most Popular</div>
             <div class="product-header bundle">
@@ -138,15 +146,22 @@
             <button class="btn-product-featured" @click="$router.push('/customer-login?tab=register')">Bundle &amp; Save</button>
           </div>
 
+          <!-- Home Insurance Card -->
           <div class="product-card">
             <div class="product-header home">
               <span class="product-icon-lg">🏠</span>
               <div>
                 <div class="product-type">Home Insurance</div>
-                <div class="product-from">Starting from <strong>$600</strong>/yr</div>
+                <div class="product-from">Starting from <strong>${{ homeFromPrice }}</strong>/yr</div>
               </div>
             </div>
-            <ul class="product-features">
+            <div v-if="homePlans.length > 0" class="plan-tiers">
+              <div v-for="p in homePlans" :key="p.planId" class="plan-tier">
+                <span class="tier-name">{{ p.planName }}</span>
+                <span class="tier-price">${{ p.amount }}/yr</span>
+              </div>
+            </div>
+            <ul v-else class="product-features">
               <li>Dwelling &amp; Structure Coverage</li>
               <li>Personal Property Protection</li>
               <li>Personal Liability</li>
@@ -226,11 +241,12 @@
         </div>
         <div class="why-visual">
           <div class="why-card-big">
+            <div class="wcb-demo-badge">Sample Dashboard Preview</div>
             <div class="wcb-header">Your Coverage at a Glance</div>
             <div class="wcb-row"><span>🚗 Auto Policy</span><span class="wcb-active">Active</span></div>
             <div class="wcb-row"><span>🏠 Home Policy</span><span class="wcb-active">Active</span></div>
-            <div class="wcb-row"><span>📄 Next Invoice</span><span class="wcb-date">May 6, 2026</span></div>
-            <div class="wcb-row"><span>💳 Last Payment</span><span class="wcb-paid">$1,400.00</span></div>
+            <div class="wcb-row"><span>📄 Next Invoice</span><span class="wcb-date">Due in 30 days</span></div>
+            <div class="wcb-row"><span>💳 Last Payment</span><span class="wcb-paid">Paid ✓</span></div>
             <div class="wcb-footer">
               <div class="wcb-stat"><div class="wcb-big">2</div><div class="wcb-small">Active Policies</div></div>
               <div class="wcb-stat"><div class="wcb-big">$0</div><div class="wcb-small">Outstanding</div></div>
@@ -343,8 +359,24 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import request from '../api/request.js'
+
 const router = useRouter()
+
+const planData = ref([])
+onMounted(async () => {
+  try {
+    const res = await request.get('/plans')
+    planData.value = res.data || []
+  } catch { /* keep static fallbacks */ }
+})
+
+const autoPlans = computed(() => planData.value.filter(p => p.planType === 'AUTO').sort((a, b) => a.amount - b.amount))
+const homePlans = computed(() => planData.value.filter(p => p.planType === 'HOME').sort((a, b) => a.amount - b.amount))
+const autoFromPrice = computed(() => autoPlans.value.length ? autoPlans.value[0].amount : 800)
+const homeFromPrice = computed(() => homePlans.value.length ? homePlans.value[0].amount : 600)
 </script>
 
 <style scoped>
@@ -519,6 +551,16 @@ const router = useRouter()
   content: '✓'; position: absolute; left: 0;
   color: #10b981; font-weight: 700;
 }
+/* Plan tiers inside product cards */
+.plan-tiers { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.plan-tier {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; background: #f8fafc; border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+.tier-name { font-size: 13px; font-weight: 600; color: #475569; }
+.tier-price { font-size: 13px; font-weight: 700; color: #2563eb; }
+
 .btn-product {
   padding: 12px; border: 2px solid #2563eb; color: #2563eb;
   border-radius: 10px; font-size: 14px; font-weight: 600;
@@ -569,6 +611,13 @@ const router = useRouter()
   background: white; border: 1px solid #e2e8f0;
   border-radius: 20px; padding: 28px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+}
+.wcb-demo-badge {
+  display: inline-block;
+  background: #f1f5f9; color: #94a3b8;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+  padding: 3px 10px; border-radius: 20px; margin-bottom: 14px;
+  text-transform: uppercase;
 }
 .wcb-header { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 20px; }
 .wcb-row {

@@ -39,6 +39,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // 公开：登录、注册
                 .requestMatchers("/api/auth/**").permitAll()
+                // 公开：套餐列表（官网和门户均可读取）
+                .requestMatchers(HttpMethod.GET, "/api/plans").permitAll()
                 // 公开：Swagger UI
                 .requestMatchers(
                     "/swagger-ui/**",
