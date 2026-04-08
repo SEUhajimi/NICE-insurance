@@ -1,7 +1,9 @@
+
 # Build stage
 FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY . .
+RUN ls -la /app && find /app -name "pom.xml" -not -path "*/target/*"
 RUN mvn clean package -DskipTests
 
 # Run stage
