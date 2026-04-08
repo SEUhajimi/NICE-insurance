@@ -31,6 +31,9 @@ public interface AutoPolicyMapper {
     @Update("UPDATE hjb_autopolicy SET Status='T' WHERE EDATE < #{today} AND Status='C'")
     int updateExpired(@Param("today") LocalDate today);
 
+    @Select("SELECT * FROM hjb_autopolicy WHERE AP_ID = #{apId} AND HJB_CUSTOMER_CUST_ID = #{custId}")
+    AutoPolicy findByIdAndCustomerId(@Param("apId") Integer apId, @Param("custId") Integer custId);
+
     @Insert("INSERT INTO hjb_autopolicy(SDATE, EDATE, Amount, Status, HJB_CUSTOMER_CUST_ID) " +
             "VALUES(#{sdate}, #{edate}, #{amount}, #{status}, #{hjbCustomerCustId})")
     @Options(useGeneratedKeys = true, keyProperty = "apId")

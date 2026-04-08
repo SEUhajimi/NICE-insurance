@@ -5,6 +5,7 @@ import com.hjb.nice.server.mapper.HomeMapper;
 import com.hjb.nice.server.service.HomeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
@@ -23,11 +24,17 @@ public class HomeServiceImpl implements HomeService {
     public List<Home> findByHomePolicyId(Integer hpId) { return homeMapper.findByHomePolicyId(hpId); }
 
     @Override
+    
+    @Transactional
     public void add(Home home) { homeMapper.insert(home); }
 
     @Override
+    
+    @Transactional
     public void update(Home home) { homeMapper.update(home); }
 
     @Override
+    
+    @Transactional
     public void deleteById(Integer homeId) { homeMapper.deleteById(homeId); }
 }
