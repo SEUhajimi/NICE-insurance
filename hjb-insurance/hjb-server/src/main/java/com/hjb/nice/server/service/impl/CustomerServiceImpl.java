@@ -5,6 +5,7 @@ import com.hjb.nice.server.mapper.CustomerMapper;
 import com.hjb.nice.server.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,16 +26,22 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    
+    @Transactional
     public void add(Customer customer) {
         customerMapper.insert(customer);
     }
 
     @Override
+    
+    @Transactional
     public void update(Customer customer) {
         customerMapper.update(customer);
     }
 
     @Override
+    
+    @Transactional
     public void deleteById(Integer custId) {
         customerMapper.deleteById(custId);
     }

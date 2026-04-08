@@ -13,6 +13,6 @@ mybatis:
     map-underscore-to-camel-case: true
 
 jwt:
-  # Base64编码的密钥，至少32字节（256位）用于HS256签名，生产环境请替换为随机密钥
-  secret: aGpiLWluc3VyYW5jZS1zZWNyZXQta2V5LW11c3QtYmUtYXQtbGVhc3QtMzItY2hhcnMhIQ==
+  # 生产环境通过 JWT_SECRET 环境变量注入，本地开发使用默认值
+  secret: ${JWT_SECRET}
   expiration: 86400000  # 24小时（毫秒）

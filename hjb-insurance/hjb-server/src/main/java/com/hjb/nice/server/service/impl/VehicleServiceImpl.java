@@ -5,6 +5,7 @@ import com.hjb.nice.server.mapper.VehicleMapper;
 import com.hjb.nice.server.service.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
@@ -23,11 +24,17 @@ public class VehicleServiceImpl implements VehicleService {
     public List<Vehicle> findByAutoPolicyId(Integer apId) { return vehicleMapper.findByAutoPolicyId(apId); }
 
     @Override
+    
+    @Transactional
     public void add(Vehicle vehicle) { vehicleMapper.insert(vehicle); }
 
     @Override
+    
+    @Transactional
     public void update(Vehicle vehicle) { vehicleMapper.update(vehicle); }
 
     @Override
+    
+    @Transactional
     public void deleteById(String vin) { vehicleMapper.deleteById(vin); }
 }

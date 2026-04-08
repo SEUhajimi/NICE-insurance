@@ -8,6 +8,7 @@ import com.hjb.nice.result.Result;
 import com.hjb.nice.server.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,14 +34,14 @@ public class AuthController {
 
     @Operation(summary = "客户注册", description = "同时创建 Customer 记录和账号")
     @PostMapping("/customer/register")
-    public Result<Void> customerRegister(@RequestBody CustomerRegisterRequest request) {
+    public Result<Void> customerRegister(@Valid @RequestBody CustomerRegisterRequest request) {
         authService.customerRegister(request);
         return Result.success();
     }
 
     @Operation(summary = "客户找回密码", description = "验证用户名和邮箱，重置密码")
     @PostMapping("/customer/reset-password")
-    public Result<Void> resetPassword(@RequestBody ResetPasswordRequest request) {
+    public Result<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request);
         return Result.success();
     }

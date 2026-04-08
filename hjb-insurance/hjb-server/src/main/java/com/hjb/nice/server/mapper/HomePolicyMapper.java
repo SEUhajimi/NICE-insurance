@@ -31,6 +31,9 @@ public interface HomePolicyMapper {
     @Update("UPDATE hjb_homepolicy SET Status='T' WHERE EDATE < #{today} AND Status='C'")
     int updateExpired(@Param("today") LocalDate today);
 
+    @Select("SELECT * FROM hjb_homepolicy WHERE HP_ID = #{hpId} AND HJB_CUSTOMER_CUST_ID = #{custId}")
+    HomePolicy findByIdAndCustomerId(@Param("hpId") Integer hpId, @Param("custId") Integer custId);
+
     @Insert("INSERT INTO hjb_homepolicy(SDATE, EDATE, Amount, Status, HJB_CUSTOMER_CUST_ID) " +
             "VALUES(#{sdate}, #{edate}, #{amount}, #{status}, #{hjbCustomerCustId})")
     @Options(useGeneratedKeys = true, keyProperty = "hpId")

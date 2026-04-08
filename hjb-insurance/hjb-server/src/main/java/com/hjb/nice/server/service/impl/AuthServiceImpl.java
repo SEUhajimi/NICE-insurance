@@ -59,10 +59,10 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void customerRegister(CustomerRegisterRequest request) {
         if (customerAccountMapper.findByUsername(request.getUsername()) != null) {
-            throw new RuntimeException("用户名已存在");
+            throw new RuntimeException("该用户名不可用");
         }
         if (customerAccountMapper.findByEmail(request.getEmail()) != null) {
-            throw new RuntimeException("邮箱已被注册");
+            throw new RuntimeException("该邮箱不可用");
         }
 
         // 只创建账号，个人信息暂存于此，下单时才创建 hjb_customer 记录

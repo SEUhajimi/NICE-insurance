@@ -2207,4 +2207,340 @@ hjb-frontend-vue/
 
 ---
 
+## 13. Service 层重构与事务管理
+
+> 本章讲解为什么需要 Service 层，以及 `@Transactional` 在真实项目中解决了什么问题。
+
+### 13.1 最初的问题：Controller 直接操作 Mapper
+
+项目初期，`CustomerPortalController` 直接注入了六个 Mapper：
+
+```java
+// ❌ 反模式：Controller 直接操控数据库
+@Autowired private CustomerAccountMapper customerAccountMapper;
+@Autowired private CustomerMapper customerMapper;
+@Autowired private AutoPolicyMapper autoPolicyMapper;
+@Autowired private HomePolicyMapper homePolicyMapper;
+@Autowired private InvoiceMapper invoiceMapper;
+@Autowired private PaymentMapper paymentMapper;
+```
+
+这带来两个严重问题：
+
+**问题 1：事务位置错误**
+
+`purchasePolicy` 方法需要同时操作四张表（创建客户 → 创建保单 → 创建账单 → 更新客户类型），要么全部成功，要么全部回滚。代码里虽然加了 `@Transactional`，但加在了 Controller 方法上：
+
+```java
+// ❌ @Transactional 加在 Controller 上是反模式
+@PostMapping("/purchase")
+@Transactional   // ← 放错了地方
+public Result<Void> purchasePolicy(...) { ... }
+```
+
+Spring 的 `@Transactional` 通过 **AOP 代理**实现：Spring 在调用你的方法前后插入事务开启/提交/回滚的逻辑。这个代理只对被 Spring 容器管理的 **Bean 的外部调用**生效。Controller 虽然也是 Bean，但事务最佳实践要求事务边界在 Service 层，原因：
+- Controller 负责处理 HTTP，不应承担业务逻辑
+- Service 方法可以被多个 Controller 复用，事务跟着走
+- 更容易写单元测试（可以单独测 Service 而不需要启动 HTTP）
+
+**问题 2：makePayment 完全没有事务**
+
+支付方法先查询已付金额，再插入支付记录，这两步之间如果同时有两个请求进来：
+
+```
+请求A: 查询已付 = $0  →  (还没插入)
+请求B: 查询已付 = $0  →  (还没插入)
+请求A: 插入支付 $1200  ✓
+请求B: 插入支付 $1200  ✓   ← 本应被拒绝！账单被多付了！
+```
+
+没有事务保护，这就是经典的**并发重复支付**漏洞。
+
+**问题 3：安全漏洞**
+
+原始 `makePayment` 只验证账单是否存在，没有验证账单是否属于当前用户：
+
+```java
+// ❌ 任何登录用户都能通过猜测 invoiceId 来操作别人的账单
+Invoice invoice = invoiceMapper.findById(req.getInvoiceId());
+if (invoice == null) throw new RuntimeException("不存在");
+// 直接付款，没有检查这张账单是不是这个用户的！
+```
+
+---
+
+### 13.2 重构方案：下沉到 Service 层
+
+**架构变化：**
+
+```
+重构前：
+Controller → Mapper（直接操数据库，事务混乱）
+
+重构后：
+Controller → Service（含 @Transactional） → Mapper
+```
+
+**新增文件：**
+- `service/CustomerPortalService.java`（接口）
+- `service/impl/CustomerPortalServiceImpl.java`（实现）
+
+**Controller 瘦身后的样子：**
+
+```java
+@RestController
+@RequestMapping("/api/portal")
+public class CustomerPortalController {
+
+    @Autowired
+    private CustomerPortalService portalService;  // 只依赖 Service
+
+    private String currentUsername() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    @PostMapping("/purchase")
+    public Result<Void> purchasePolicy(@RequestBody PurchaseRequest req) {
+        portalService.purchasePolicy(currentUsername(), req);  // 一行调用
+        return Result.success();
+    }
+
+    @PostMapping("/payments")
+    public Result<Void> makePayment(@RequestBody PaymentRequest req) {
+        portalService.makePayment(currentUsername(), req);
+        return Result.success();
+    }
+}
+```
+
+Controller 现在只做两件事：拿到当前用户名、调用 Service。不再有任何业务逻辑。
+
+---
+
+### 13.3 @Transactional 的正确用法
+
+**purchasePolicy：四步操作原子化**
+
+```java
+@Service
+public class CustomerPortalServiceImpl implements CustomerPortalService {
+
+    @Override
+    @Transactional   // ← 正确：加在 Service 方法上
+    public void purchasePolicy(String username, PurchaseRequest req) {
+        // 步骤1：首次购险时创建 hjb_customer 记录
+        // 步骤2：创建 AutoPolicy 或 HomePolicy
+        // 步骤3：创建 Invoice
+        // 步骤4：更新客户类型（A/H/B）
+        // 任何一步抛出异常 → 整个方法的所有数据库操作全部回滚
+    }
+}
+```
+
+`@Transactional` 的工作原理：
+1. 方法开始前：Spring 开启一个数据库事务（`BEGIN`）
+2. 方法执行中：所有 Mapper 操作都在这个事务里
+3. 方法正常结束：自动提交（`COMMIT`）
+4. 方法抛出 RuntimeException：自动回滚（`ROLLBACK`）
+
+**makePayment：加事务 + 三重校验**
+
+```java
+@Override
+@Transactional
+public void makePayment(String username, PaymentRequest req) {
+    // 校验1：金额必须大于0
+    if (req.getPayAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        throw new RuntimeException("支付金额必须大于 0");
+    }
+
+    Invoice invoice = invoiceMapper.findById(req.getInvoiceId());
+    if (invoice == null) throw new RuntimeException("Invoice 不存在");
+
+    // 校验2：账单必须属于当前用户（安全校验）
+    if (!invoiceBelongsToUser(invoice, username)) {
+        throw new RuntimeException("无权操作该账单");
+    }
+
+    // 校验3：不能超额支付
+    BigDecimal paid = paymentMapper.findByInvoiceId(req.getInvoiceId()).stream()
+            .map(Payment::getPayAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    if (paid.compareTo(invoice.getAmount()) >= 0) {
+        throw new RuntimeException("该账单已全额支付");
+    }
+    BigDecimal remaining = invoice.getAmount().subtract(paid);
+    if (req.getPayAmount().compareTo(remaining) > 0) {
+        throw new RuntimeException("支付金额不能超过剩余应付金额 " + remaining);
+    }
+
+    // 通过所有校验后才插入支付记录
+    Payment payment = new Payment();
+    payment.setHjbInvoiceIId(req.getInvoiceId());
+    payment.setMethod(req.getMethod());
+    payment.setPayAmount(req.getPayAmount());
+    payment.setPayDate(LocalDate.now());
+    paymentMapper.insertAutoId(payment);
+}
+```
+
+---
+
+### 13.4 关键收获
+
+| 概念 | 本项目中的体现 |
+|------|--------------|
+| 分层架构 | Controller → Service → Mapper，职责分离 |
+| `@Transactional` | purchasePolicy 四步原子操作，makePayment 防并发 |
+| 权限校验 | invoiceBelongsToUser 防止越权访问他人数据 |
+| 输入校验 | 金额 > 0、类型必须为 AUTO/HOME、不能超额支付 |
+
+---
+
+## 14. 生产环境部署（Railway + Vercel）
+
+> 本章讲解如何将项目免费部署到互联网，使用 Railway（后端+数据库）和 Vercel（前端）。
+
+### 14.1 整体架构
+
+```
+用户浏览器
+    │
+    ├──→ Vercel（前端静态文件，全球 CDN）
+    │       ↓ API 请求
+    └──→ Railway（Spring Boot 后端）
+                ↓ JDBC
+            Railway MySQL（数据库）
+```
+
+### 14.2 后端部署到 Railway
+
+**前提：** 代码已推送到 GitHub。
+
+**步骤：**
+
+1. 注册并登录 [railway.app](https://railway.app)
+2. New Project → Deploy from GitHub repo → 选择后端仓库
+3. 添加 MySQL 服务：New → Database → MySQL
+4. 在后端服务的 **Variables** 标签里添加环境变量：
+
+   | Key | Value 来源 |
+   |-----|-----------|
+   | `DB_HOST` | MySQL 服务 → Connect → `MYSQLHOST`（内网地址） |
+   | `DB_USER` | MySQL 服务 → Connect → `MYSQLUSER` |
+   | `DB_PASS` | MySQL 服务 → Connect → `MYSQLPASSWORD` |
+
+5. Settings → Build → Builder 改为 **Dockerfile**
+6. Settings → Deploy → Start Command 改为 `java -jar app.jar`
+7. Settings → Networking → Generate Domain，得到后端域名
+
+**为什么需要 Dockerfile？**
+
+Railway 默认使用 Railpack 构建，它在 Maven 多模块项目上支持不完善。自己写 Dockerfile 可以精确控制构建过程：
+
+```dockerfile
+# 阶段1：构建（使用包含 Maven 的完整镜像）
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY . .
+RUN cd hjb-insurance && mvn clean package -DskipTests
+
+# 阶段2：运行（只用轻量 JRE，不需要 Maven）
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+COPY --from=build /app/hjb-insurance/hjb-server/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+> **多阶段构建的意义：** 构建阶段的 Maven、源码、class 文件都不会打进最终镜像，最终镜像只有 JRE + JAR，体积从 ~600MB 降到 ~200MB。
+
+**导入数据库：**
+
+Railway MySQL 初始是空的，需要用 MySQL Workbench 连接后导入 SQL 文件：
+- Host/Port/User/Password：从 MySQL 服务 Connect 标签的公网 URL 读取
+- 导入：Server → Data Import → Import from Self-Contained File → 选择 `nice.sql`
+
+---
+
+### 14.3 前端部署到 Vercel
+
+**步骤：**
+
+1. 注册并登录 [vercel.com](https://vercel.com)
+2. New Project → 导入前端 GitHub 仓库
+3. Framework Preset 选 **Vite**，Build Command `npm run build`，Output Directory `dist`
+4. Deploy
+
+**配置后端地址：**
+
+前端的 API 请求地址在 `src/api/request.js`：
+
+```js
+const request = axios.create({
+  baseURL: 'https://你的后端域名.up.railway.app/api',
+  timeout: 5000
+})
+```
+
+将 `你的后端域名` 替换为 Railway 生成的域名，commit + push 后 Vercel 自动重新部署。
+
+**解决刷新 404 问题：**
+
+Vue Router 使用 HTML5 History 模式，刷新时 Vercel 会找不到对应的文件。在前端根目录添加 `vercel.json`：
+
+```json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
+这告诉 Vercel：所有路径都返回 `index.html`，由 Vue Router 在浏览器端处理路由。
+
+---
+
+### 14.4 配置 CORS
+
+后端需要允许来自 Vercel 域名的跨域请求。在 `SecurityConfig.java` 中：
+
+```java
+@Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
+    config.setAllowedOriginPatterns(List.of(
+        "http://localhost:*",                    // 本地开发
+        "https://你的项目名.vercel.app"           // 生产环境
+    ));
+    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    config.setAllowedHeaders(List.of("*"));
+    config.setAllowCredentials(true);
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
+}
+```
+
+> **CORS 是什么？** 浏览器的安全策略不允许一个域名（`xxx.vercel.app`）的页面直接请求另一个域名（`xxx.railway.app`）的接口，除非后端明确允许。后端通过返回特定的响应头（`Access-Control-Allow-Origin`）来告诉浏览器"我允许你来请求"。
+
+---
+
+### 14.5 自动部署流程
+
+配置完成后，每次 `git push`：
+
+```
+git push
+   ↓
+GitHub 仓库更新
+   ↓
+Vercel 检测到变化 → 自动构建前端 → 部署新版本
+Railway 检测到变化 → 自动构建后端 → 部署新版本
+```
+
+整个流程约 2-5 分钟完成，无需手动操作。
+
+---
+
 *本文档基于 HJB Insurance v1.0 项目编写。如遇到文档与代码不一致的情况，以实际代码为准。*
