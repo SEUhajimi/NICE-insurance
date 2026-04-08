@@ -2,7 +2,7 @@ import axios from 'axios'
 import router from '../router/index.js'
 
 const request = axios.create({
-  baseURL: 'https://YOUR-RAILWAY-DOMAIN.up.railway.app/api',
+  baseURL: 'https://nice-insurance-production.up.railway.app/api',
   timeout: 5000
 })
 
