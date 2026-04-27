@@ -24,17 +24,24 @@ public class AutoPolicyServiceImpl implements AutoPolicyService {
     public List<AutoPolicy> findByCustomerId(Integer custId) { return autoPolicyMapper.findByCustomerId(custId); }
 
     @Override
-    
     @Transactional
-    public void add(AutoPolicy autoPolicy) { autoPolicyMapper.insert(autoPolicy); }
+    public void add(AutoPolicy autoPolicy) {
+        if (autoPolicy.getApId() != null) {
+            autoPolicyMapper.insertPolicyWithId(autoPolicy);
+        } else {
+            autoPolicyMapper.insertPolicy(autoPolicy);
+        }
+        autoPolicyMapper.insertSubtype(autoPolicy);
+    }
 
     @Override
-    
     @Transactional
     public void update(AutoPolicy autoPolicy) { autoPolicyMapper.update(autoPolicy); }
 
     @Override
-    
     @Transactional
-    public void deleteById(Integer apId) { autoPolicyMapper.deleteById(apId); }
+    public void deleteById(Integer apId) {
+        autoPolicyMapper.deleteSubtype(apId);
+        autoPolicyMapper.deletePolicy(apId);
+    }
 }

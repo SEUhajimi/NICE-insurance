@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@Tag(name = "管理端 - 车辆驾驶员关联", description = "VehicleDriver关联表的增删查（需 EMPLOYEE Token）")
+@Tag(name = "管理端 - 车辆驾驶员关联", description = "查询车辆-驾驶员关联（需 EMPLOYEE Token）；driver 现在直接持有 VIN 外键，关联通过 hjb_driver 查询")
 @SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/api/vehicle-drivers")
@@ -31,17 +31,5 @@ public class VehicleDriverController {
     @GetMapping("/driver/{license}")
     public Result<List<VehicleDriver>> findByDriverLicense(@PathVariable("license") String license) {
         return Result.success(vehicleDriverMapper.findByDriverLicense(license));
-    }
-
-    @PostMapping
-    public Result<Void> add(@RequestBody VehicleDriver vd) {
-        vehicleDriverMapper.insert(vd);
-        return Result.success();
-    }
-
-    @DeleteMapping("/{vin}/{license}")
-    public Result<Void> delete(@PathVariable("vin") String vin, @PathVariable("license") String license) {
-        vehicleDriverMapper.delete(vin, license);
-        return Result.success();
     }
 }

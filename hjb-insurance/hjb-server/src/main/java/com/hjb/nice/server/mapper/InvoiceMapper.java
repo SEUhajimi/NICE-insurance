@@ -4,34 +4,30 @@ import com.hjb.nice.entity.Invoice;
 import org.apache.ibatis.annotations.*;
 import java.util.List;
 
+// Read-only mapper: unions hjb_auto_invoice and hjb_home_invoice into the legacy Invoice DTO.
+// Write operations are delegated to AutoInvoiceMapper / HomeInvoiceMapper in InvoiceServiceImpl.
 @Mapper
 public interface InvoiceMapper {
 
-    @Select("SELECT * FROM hjb_invoice")
+    @Select("SELECT I_ID, I_Date, Due, Amount, HJB_AUTOPOLICY_AP_ID, NULL AS HJB_HOMEPOLICY_HP_ID " +
+            "FROM hjb_auto_invoice " +
+            "UNION ALL " +
+            "SELECT I_ID, I_Date, Due, Amount, NULL AS HJB_AUTOPOLICY_AP_ID, HJB_HOMEPOLICY_HP_ID " +
+            "FROM hjb_home_invoice")
     List<Invoice> findAll();
 
-    @Select("SELECT * FROM hjb_invoice WHERE I_ID = #{iId}")
+    @Select("SELECT I_ID, I_Date, Due, Amount, HJB_AUTOPOLICY_AP_ID, NULL AS HJB_HOMEPOLICY_HP_ID " +
+            "FROM hjb_auto_invoice WHERE I_ID = #{iId} " +
+            "UNION ALL " +
+            "SELECT I_ID, I_Date, Due, Amount, NULL AS HJB_AUTOPOLICY_AP_ID, HJB_HOMEPOLICY_HP_ID " +
+            "FROM hjb_home_invoice WHERE I_ID = #{iId}")
     Invoice findById(Integer iId);
 
-    @Insert("INSERT INTO hjb_invoice(I_ID, I_Date, Due, Amount, HJB_HOMEPOLICY_HP_ID, HJB_AUTOPOLICY_AP_ID) " +
-            "VALUES(#{iId}, #{iDate}, #{due}, #{amount}, #{hjbHomepolicyHpId}, #{hjbAutopolicyApId})")
-    void insert(Invoice invoice);
-
-    @Update("UPDATE hjb_invoice SET I_Date=#{iDate}, Due=#{due}, Amount=#{amount}, " +
-            "HJB_HOMEPOLICY_HP_ID=#{hjbHomepolicyHpId}, HJB_AUTOPOLICY_AP_ID=#{hjbAutopolicyApId} WHERE I_ID=#{iId}")
-    void update(Invoice invoice);
-
-    @Delete("DELETE FROM hjb_invoice WHERE I_ID = #{iId}")
-    void deleteById(Integer iId);
-
-    @Select("SELECT * FROM hjb_invoice WHERE HJB_AUTOPOLICY_AP_ID = #{apId}")
+    @Select("SELECT I_ID, I_Date, Due, Amount, HJB_AUTOPOLICY_AP_ID, NULL AS HJB_HOMEPOLICY_HP_ID " +
+            "FROM hjb_auto_invoice WHERE HJB_AUTOPOLICY_AP_ID = #{apId}")
     List<Invoice> findByAutoPolicyId(Integer apId);
 
-    @Select("SELECT * FROM hjb_invoice WHERE HJB_HOMEPOLICY_HP_ID = #{hpId}")
+    @Select("SELECT I_ID, I_Date, Due, Amount, NULL AS HJB_AUTOPOLICY_AP_ID, HJB_HOMEPOLICY_HP_ID " +
+            "FROM hjb_home_invoice WHERE HJB_HOMEPOLICY_HP_ID = #{hpId}")
     List<Invoice> findByHomePolicyId(Integer hpId);
-
-    @Insert("INSERT INTO hjb_invoice(I_Date, Due, Amount, HJB_HOMEPOLICY_HP_ID, HJB_AUTOPOLICY_AP_ID) " +
-            "VALUES(#{iDate}, #{due}, #{amount}, #{hjbHomepolicyHpId}, #{hjbAutopolicyApId})")
-    @Options(useGeneratedKeys = true, keyProperty = "iId")
-    void insertAutoId(Invoice invoice);
 }

@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus'
 import router from '../router/index.js'
 
 const request = axios.create({
-  baseURL: 'https://nice-insurance-production.up.railway.app/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 5000
 })
 

@@ -9,4 +9,5 @@ public class Driver {
     private String fname;
     private String lname;
     private LocalDate birthday;
+    private String hjbVehicleVin;
 }

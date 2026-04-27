@@ -26,8 +26,10 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
     @Autowired private CustomerMapper customerMapper;
     @Autowired private AutoPolicyMapper autoPolicyMapper;
     @Autowired private HomePolicyMapper homePolicyMapper;
-    @Autowired private InvoiceMapper invoiceMapper;
-    @Autowired private PaymentMapper paymentMapper;
+    @Autowired private AutoInvoiceMapper autoInvoiceMapper;
+    @Autowired private HomeInvoiceMapper homeInvoiceMapper;
+    @Autowired private AutoPaymentMapper autoPaymentMapper;
+    @Autowired private HomePaymentMapper homePaymentMapper;
 
     private CustomerAccount getAccount(String username) {
         CustomerAccount account = customerAccountMapper.findByUsername(username);
@@ -68,7 +70,6 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
 
         CustomerAccount account = getAccount(username);
 
-        // 首次购险：直接使用已读取的 account 数据，不做二次查询
         if (account.getCustomerId() == null) {
             Customer customer = new Customer();
             customer.setFname(account.getFname());
@@ -82,16 +83,11 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
             customer.setZipcode(account.getZipcode());
             customerMapper.insertForRegister(customer);
             customerAccountMapper.updateCustomerId(account.getAccountId(), customer.getCustId());
-            account.setCustomerId(customer.getCustId()); // 内存更新，无需重查
+            account.setCustomerId(customer.getCustId());
         }
 
         Integer custId = account.getCustomerId();
         LocalDate today = LocalDate.now();
-
-        Invoice invoice = new Invoice();
-        invoice.setIDate(today);
-        invoice.setDue(today.plusDays(30));
-        invoice.setAmount(req.getAmount());
 
         if ("AUTO".equals(req.getType())) {
             AutoPolicy policy = new AutoPolicy();
@@ -100,8 +96,15 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
             policy.setAmount(req.getAmount());
             policy.setStatus(PolicyStatus.CURRENT.getCode());
             policy.setHjbCustomerCustId(custId);
-            autoPolicyMapper.insertAutoId(policy);
+            autoPolicyMapper.insertPolicy(policy);
+            autoPolicyMapper.insertSubtype(policy);
+
+            AutoInvoice invoice = new AutoInvoice();
+            invoice.setIDate(today);
+            invoice.setDue(today.plusDays(30));
+            invoice.setAmount(req.getAmount());
             invoice.setHjbAutopolicyApId(policy.getApId());
+            autoInvoiceMapper.insertAutoId(invoice);
         } else {
             HomePolicy policy = new HomePolicy();
             policy.setSdate(today);
@@ -109,10 +112,16 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
             policy.setAmount(req.getAmount());
             policy.setStatus(PolicyStatus.CURRENT.getCode());
             policy.setHjbCustomerCustId(custId);
-            homePolicyMapper.insertAutoId(policy);
+            homePolicyMapper.insertPolicy(policy);
+            homePolicyMapper.insertSubtype(policy);
+
+            HomeInvoice invoice = new HomeInvoice();
+            invoice.setIDate(today);
+            invoice.setDue(today.plusDays(30));
+            invoice.setAmount(req.getAmount());
             invoice.setHjbHomepolicyHpId(policy.getHpId());
+            homeInvoiceMapper.insertAutoId(invoice);
         }
-        invoiceMapper.insertAutoId(invoice);
 
         boolean hasAuto = !autoPolicyMapper.findByCustomerId(custId).isEmpty();
         boolean hasHome = !homePolicyMapper.findByCustomerId(custId).isEmpty();
@@ -141,30 +150,32 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
         List<InvoiceWithStatus> result = new ArrayList<>();
 
         autoPolicyMapper.findByCustomerId(custId).forEach(ap ->
-            invoiceMapper.findByAutoPolicyId(ap.getApId()).forEach(inv ->
-                result.add(buildInvoiceStatus(inv, "Auto"))));
+            autoInvoiceMapper.findByAutoPolicyId(ap.getApId()).forEach(inv ->
+                result.add(buildAutoInvoiceStatus(inv))));
 
         homePolicyMapper.findByCustomerId(custId).forEach(hp ->
-            invoiceMapper.findByHomePolicyId(hp.getHpId()).forEach(inv ->
-                result.add(buildInvoiceStatus(inv, "Home"))));
+            homeInvoiceMapper.findByHomePolicyId(hp.getHpId()).forEach(inv ->
+                result.add(buildHomeInvoiceStatus(inv))));
 
         return result;
     }
 
     @Override
-    public List<Payment> getPayments(String username) {
+    public List<PaymentView> getPayments(String username) {
         CustomerAccount account = getAccount(username);
         if (account.getCustomerId() == null) return List.of();
         Integer custId = account.getCustomerId();
-        List<Payment> payments = new ArrayList<>();
+        List<PaymentView> payments = new ArrayList<>();
 
         autoPolicyMapper.findByCustomerId(custId).forEach(ap ->
-            invoiceMapper.findByAutoPolicyId(ap.getApId()).forEach(inv ->
-                payments.addAll(paymentMapper.findByInvoiceId(inv.getIId()))));
+            autoInvoiceMapper.findByAutoPolicyId(ap.getApId()).forEach(inv ->
+                autoPaymentMapper.findByInvoiceId(inv.getIId()).forEach(p ->
+                    payments.add(toPaymentView(p, inv.getIId(), "Auto")))));
 
         homePolicyMapper.findByCustomerId(custId).forEach(hp ->
-            invoiceMapper.findByHomePolicyId(hp.getHpId()).forEach(inv ->
-                payments.addAll(paymentMapper.findByInvoiceId(inv.getIId()))));
+            homeInvoiceMapper.findByHomePolicyId(hp.getHpId()).forEach(inv ->
+                homePaymentMapper.findByInvoiceId(inv.getIId()).forEach(p ->
+                    payments.add(toPaymentView(p, inv.getIId(), "Home")))));
 
         return payments;
     }
@@ -179,54 +190,70 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
             throw new ValidationException("支付金额最多保留两位小数");
         }
 
-        Invoice invoice = invoiceMapper.findById(req.getInvoiceId());
-        if (invoice == null) throw new NotFoundException("Invoice 不存在");
-
-        // 用单条 SQL 校验归属，避免 N+1 查询
-        if (!invoiceBelongsToUser(invoice, username)) {
-            throw new UnauthorizedException("无权操作该账单");
+        String type = req.getType();
+        if (!"AUTO".equals(type) && !"HOME".equals(type)) {
+            throw new ValidationException("账单类型无效，必须为 AUTO 或 HOME");
         }
 
-        BigDecimal paid = paymentMapper.findByInvoiceId(req.getInvoiceId()).stream()
-                .map(Payment::getPayAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        if (paid.compareTo(invoice.getAmount()) >= 0) {
-            throw new ValidationException("该账单已全额支付");
+        if ("AUTO".equals(type)) {
+            AutoInvoice invoice = autoInvoiceMapper.findById(req.getInvoiceId());
+            if (invoice == null) throw new NotFoundException("Auto Invoice 不存在");
+            if (!autoInvoiceBelongsToUser(invoice, username)) {
+                throw new UnauthorizedException("无权操作该账单");
+            }
+            BigDecimal paid = autoPaymentMapper.findByInvoiceId(req.getInvoiceId()).stream()
+                    .map(AutoPayment::getPayAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+            if (paid.compareTo(invoice.getAmount()) >= 0) throw new ValidationException("该账单已全额支付");
+            BigDecimal remaining = invoice.getAmount().subtract(paid);
+            if (req.getPayAmount().compareTo(remaining) > 0) {
+                throw new ValidationException("支付金额不能超过剩余应付金额 " + remaining);
+            }
+            AutoPayment payment = new AutoPayment();
+            payment.setHjbAutoInvoiceIId(req.getInvoiceId());
+            payment.setMethod(req.getMethod());
+            payment.setPayAmount(req.getPayAmount());
+            payment.setPayDate(LocalDate.now());
+            autoPaymentMapper.insertAutoId(payment);
+        } else {
+            HomeInvoice invoice = homeInvoiceMapper.findById(req.getInvoiceId());
+            if (invoice == null) throw new NotFoundException("Home Invoice 不存在");
+            if (!homeInvoiceBelongsToUser(invoice, username)) {
+                throw new UnauthorizedException("无权操作该账单");
+            }
+            BigDecimal paid = homePaymentMapper.findByInvoiceId(req.getInvoiceId()).stream()
+                    .map(HomePayment::getPayAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+            if (paid.compareTo(invoice.getAmount()) >= 0) throw new ValidationException("该账单已全额支付");
+            BigDecimal remaining = invoice.getAmount().subtract(paid);
+            if (req.getPayAmount().compareTo(remaining) > 0) {
+                throw new ValidationException("支付金额不能超过剩余应付金额 " + remaining);
+            }
+            HomePayment payment = new HomePayment();
+            payment.setHjbHomeInvoiceIId(req.getInvoiceId());
+            payment.setMethod(req.getMethod());
+            payment.setPayAmount(req.getPayAmount());
+            payment.setPayDate(LocalDate.now());
+            homePaymentMapper.insertAutoId(payment);
         }
-
-        BigDecimal remaining = invoice.getAmount().subtract(paid);
-        if (req.getPayAmount().compareTo(remaining) > 0) {
-            throw new ValidationException("支付金额不能超过剩余应付金额 " + remaining);
-        }
-
-        Payment payment = new Payment();
-        payment.setHjbInvoiceIId(req.getInvoiceId());
-        payment.setMethod(req.getMethod());
-        payment.setPayAmount(req.getPayAmount());
-        payment.setPayDate(LocalDate.now());
-        paymentMapper.insertAutoId(payment);
     }
 
-    /** 用精准 SQL 查询替代全量遍历，O(1) 而非 O(n) */
-    private boolean invoiceBelongsToUser(Invoice invoice, String username) {
+    private boolean autoInvoiceBelongsToUser(AutoInvoice invoice, String username) {
         CustomerAccount account = getAccount(username);
         if (account.getCustomerId() == null) return false;
-        Integer custId = account.getCustomerId();
-
-        if (invoice.getHjbAutopolicyApId() != null) {
-            return autoPolicyMapper.findByIdAndCustomerId(invoice.getHjbAutopolicyApId(), custId) != null;
-        }
-        if (invoice.getHjbHomepolicyHpId() != null) {
-            return homePolicyMapper.findByIdAndCustomerId(invoice.getHjbHomepolicyHpId(), custId) != null;
-        }
-        return false;
+        return autoPolicyMapper.findByIdAndCustomerId(invoice.getHjbAutopolicyApId(), account.getCustomerId()) != null;
     }
 
-    private InvoiceWithStatus buildInvoiceStatus(Invoice inv, String policyType) {
-        List<Payment> payments = paymentMapper.findByInvoiceId(inv.getIId());
+    private boolean homeInvoiceBelongsToUser(HomeInvoice invoice, String username) {
+        CustomerAccount account = getAccount(username);
+        if (account.getCustomerId() == null) return false;
+        return homePolicyMapper.findByIdAndCustomerId(invoice.getHjbHomepolicyHpId(), account.getCustomerId()) != null;
+    }
+
+    private InvoiceWithStatus buildAutoInvoiceStatus(AutoInvoice inv) {
+        List<AutoPayment> payments = autoPaymentMapper.findByInvoiceId(inv.getIId());
         BigDecimal paidAmount = payments.stream()
-                .map(Payment::getPayAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(AutoPayment::getPayAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<PaymentView> paymentViews = payments.stream()
+                .map(p -> toPaymentView(p, inv.getIId(), "Auto")).toList();
 
         InvoiceWithStatus dto = new InvoiceWithStatus();
         dto.setIId(inv.getIId());
@@ -234,11 +261,52 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
         dto.setDue(inv.getDue());
         dto.setAmount(inv.getAmount());
         dto.setHjbAutopolicyApId(inv.getHjbAutopolicyApId());
-        dto.setHjbHomepolicyHpId(inv.getHjbHomepolicyHpId());
-        dto.setPolicyType(policyType);
+        dto.setPolicyType("Auto");
         dto.setPaidAmount(paidAmount);
         dto.setPaid(paidAmount.compareTo(inv.getAmount()) >= 0);
-        dto.setPayments(payments);
+        dto.setPayments(paymentViews);
         return dto;
+    }
+
+    private InvoiceWithStatus buildHomeInvoiceStatus(HomeInvoice inv) {
+        List<HomePayment> payments = homePaymentMapper.findByInvoiceId(inv.getIId());
+        BigDecimal paidAmount = payments.stream()
+                .map(HomePayment::getPayAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<PaymentView> paymentViews = payments.stream()
+                .map(p -> toPaymentView(p, inv.getIId(), "Home")).toList();
+
+        InvoiceWithStatus dto = new InvoiceWithStatus();
+        dto.setIId(inv.getIId());
+        dto.setIDate(inv.getIDate());
+        dto.setDue(inv.getDue());
+        dto.setAmount(inv.getAmount());
+        dto.setHjbHomepolicyHpId(inv.getHjbHomepolicyHpId());
+        dto.setPolicyType("Home");
+        dto.setPaidAmount(paidAmount);
+        dto.setPaid(paidAmount.compareTo(inv.getAmount()) >= 0);
+        dto.setPayments(paymentViews);
+        return dto;
+    }
+
+    private PaymentView toPaymentView(AutoPayment p, Integer invoiceId, String policyType) {
+        PaymentView v = new PaymentView();
+        v.setPId(p.getPId());
+        v.setMethod(p.getMethod());
+        v.setPayAmount(p.getPayAmount());
+        v.setPayDate(p.getPayDate());
+        v.setInvoiceId(invoiceId);
+        v.setPolicyType(policyType);
+        return v;
+    }
+
+    private PaymentView toPaymentView(HomePayment p, Integer invoiceId, String policyType) {
+        PaymentView v = new PaymentView();
+        v.setPId(p.getPId());
+        v.setMethod(p.getMethod());
+        v.setPayAmount(p.getPayAmount());
+        v.setPayDate(p.getPayDate());
+        v.setInvoiceId(invoiceId);
+        v.setPolicyType(policyType);
+        return v;
     }
 }

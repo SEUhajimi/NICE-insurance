@@ -2,7 +2,7 @@ package com.hjb.nice.server.controller.portal;
 
 import com.hjb.nice.entity.AutoPolicy;
 import com.hjb.nice.entity.HomePolicy;
-import com.hjb.nice.entity.Payment;
+import com.hjb.nice.entity.PaymentView;
 import com.hjb.nice.result.Result;
 import com.hjb.nice.server.service.CustomerPortalService;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -64,11 +64,11 @@ public class CustomerPortalController {
 
     @Operation(summary = "查看我的支付历史")
     @GetMapping("/my-payments")
-    public Result<List<Payment>> myPayments() {
+    public Result<List<PaymentView>> myPayments() {
         return Result.success(portalService.getPayments(currentUsername()));
     }
 
-    @Operation(summary = "为指定 Invoice 发起支付")
+    @Operation(summary = "为指定 Invoice 发起支付（需指定 type: AUTO 或 HOME）")
     @PostMapping("/payments")
     public Result<Void> makePayment(@RequestBody PaymentRequest req) {
         portalService.makePayment(currentUsername(), req);
@@ -110,11 +110,12 @@ public class CustomerPortalController {
         private String policyType;
         private BigDecimal paidAmount;
         private boolean paid;
-        private List<Payment> payments;
+        private List<PaymentView> payments;
     }
 
     @Data
     public static class PaymentRequest {
+        private String type;
         private Integer invoiceId;
         private String method;
         private BigDecimal payAmount;
