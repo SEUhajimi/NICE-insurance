@@ -4,32 +4,30 @@ import com.hjb.nice.entity.Payment;
 import org.apache.ibatis.annotations.*;
 import java.util.List;
 
+// Read-only mapper: unions hjb_auto_payment and hjb_home_payment into the legacy Payment DTO.
+// The HJB_INVOICE_I_ID column maps to the respective invoice ID from each table.
+// Write operations are delegated to AutoPaymentMapper / HomePaymentMapper in PaymentServiceImpl.
 @Mapper
 public interface PaymentMapper {
 
-    @Select("SELECT * FROM hjb_payment")
+    @Select("SELECT P_ID, Method, HJB_AUTO_INVOICE_I_ID AS HJB_INVOICE_I_ID, Pay_Amount, Pay_Date " +
+            "FROM hjb_auto_payment " +
+            "UNION ALL " +
+            "SELECT P_ID, Method, HJB_HOME_INVOICE_I_ID AS HJB_INVOICE_I_ID, Pay_Amount, Pay_Date " +
+            "FROM hjb_home_payment")
     List<Payment> findAll();
 
-    @Select("SELECT * FROM hjb_payment WHERE P_ID = #{pId}")
+    @Select("SELECT P_ID, Method, HJB_AUTO_INVOICE_I_ID AS HJB_INVOICE_I_ID, Pay_Amount, Pay_Date " +
+            "FROM hjb_auto_payment WHERE P_ID = #{pId} " +
+            "UNION ALL " +
+            "SELECT P_ID, Method, HJB_HOME_INVOICE_I_ID AS HJB_INVOICE_I_ID, Pay_Amount, Pay_Date " +
+            "FROM hjb_home_payment WHERE P_ID = #{pId}")
     Payment findById(Integer pId);
 
-    @Insert("INSERT INTO hjb_payment(P_ID, Method, HJB_INVOICE_I_ID, Pay_Amount, Pay_Date) " +
-            "VALUES(#{pId}, #{method}, #{hjbInvoiceIId}, #{payAmount}, #{payDate})")
-    void insert(Payment payment);
-
-    @Update("UPDATE hjb_payment SET Method=#{method}, HJB_INVOICE_I_ID=#{hjbInvoiceIId}, " +
-            "Pay_Amount=#{payAmount}, Pay_Date=#{payDate} WHERE P_ID=#{pId}")
-    void update(Payment payment);
-
-    @Delete("DELETE FROM hjb_payment WHERE P_ID = #{pId}")
-    void deleteById(Integer pId);
-
-    @Select("SELECT * FROM hjb_payment WHERE HJB_INVOICE_I_ID = #{invoiceId}")
+    @Select("SELECT P_ID, Method, HJB_AUTO_INVOICE_I_ID AS HJB_INVOICE_I_ID, Pay_Amount, Pay_Date " +
+            "FROM hjb_auto_payment WHERE HJB_AUTO_INVOICE_I_ID = #{invoiceId} " +
+            "UNION ALL " +
+            "SELECT P_ID, Method, HJB_HOME_INVOICE_I_ID AS HJB_INVOICE_I_ID, Pay_Amount, Pay_Date " +
+            "FROM hjb_home_payment WHERE HJB_HOME_INVOICE_I_ID = #{invoiceId}")
     List<Payment> findByInvoiceId(Integer invoiceId);
-
-    // 客户支付时使用，P_ID 由数据库 AUTO_INCREMENT 生成
-    @Insert("INSERT INTO hjb_payment(Method, HJB_INVOICE_I_ID, Pay_Amount, Pay_Date) " +
-            "VALUES(#{method}, #{hjbInvoiceIId}, #{payAmount}, #{payDate})")
-    @Options(useGeneratedKeys = true, keyProperty = "pId")
-    void insertAutoId(Payment payment);
 }

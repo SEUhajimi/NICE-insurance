@@ -24,17 +24,24 @@ public class HomePolicyServiceImpl implements HomePolicyService {
     public List<HomePolicy> findByCustomerId(Integer custId) { return homePolicyMapper.findByCustomerId(custId); }
 
     @Override
-    
     @Transactional
-    public void add(HomePolicy homePolicy) { homePolicyMapper.insert(homePolicy); }
+    public void add(HomePolicy homePolicy) {
+        if (homePolicy.getHpId() != null) {
+            homePolicyMapper.insertPolicyWithId(homePolicy);
+        } else {
+            homePolicyMapper.insertPolicy(homePolicy);
+        }
+        homePolicyMapper.insertSubtype(homePolicy);
+    }
 
     @Override
-    
     @Transactional
     public void update(HomePolicy homePolicy) { homePolicyMapper.update(homePolicy); }
 
     @Override
-    
     @Transactional
-    public void deleteById(Integer hpId) { homePolicyMapper.deleteById(hpId); }
+    public void deleteById(Integer hpId) {
+        homePolicyMapper.deleteSubtype(hpId);
+        homePolicyMapper.deletePolicy(hpId);
+    }
 }

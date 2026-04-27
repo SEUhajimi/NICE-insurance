@@ -16,7 +16,6 @@
         </nav>
         <div class="navbar-actions">
           <a class="nav-link-btn" @click="$router.push('/customer-login')">Sign In</a>
-          <button class="btn-primary-nav" @click="$router.push('/customer-login?tab=register')">Get a Quote</button>
           <a class="nav-employee" @click="$router.push('/login')">Employee Portal →</a>
         </div>
       </div>
@@ -68,30 +67,7 @@
       </div>
     </section>
 
-    <!-- Stats -->
-    <section class="stats">
-      <div class="stats-inner">
-        <div class="stat-item">
-          <div class="stat-num">20+</div>
-          <div class="stat-label">Years of Experience</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <div class="stat-num">50K+</div>
-          <div class="stat-label">Families Protected</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <div class="stat-num">98%</div>
-          <div class="stat-label">Customer Satisfaction</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <div class="stat-num">48hr</div>
-          <div class="stat-label">Average Claims Resolution</div>
-        </div>
-      </div>
-    </section>
+
 
     <!-- Products -->
     <section class="products" id="products">
@@ -256,39 +232,6 @@
       </div>
     </section>
 
-    <!-- Testimonials -->
-    <section class="testimonials">
-      <div class="section-inner">
-        <div class="section-label-tag">CUSTOMER STORIES</div>
-        <h2 class="section-title">What Our Customers Say</h2>
-        <div class="testimonial-grid">
-          <div class="testimonial-card">
-            <div class="stars">★★★★★</div>
-            <p>"Filed a claim after a fender bender and the whole thing was settled in under 2 days. Absolutely impressed by the speed and professionalism."</p>
-            <div class="testimonial-author">
-              <div class="author-avatar">JM</div>
-              <div><strong>James Mitchell</strong><br /><span>Auto Insurance Customer</span></div>
-            </div>
-          </div>
-          <div class="testimonial-card">
-            <div class="stars">★★★★★</div>
-            <p>"Bundling my auto and home insurance saved me over $400 this year. The process was super easy and everything is managed in one place."</p>
-            <div class="testimonial-author">
-              <div class="author-avatar">SR</div>
-              <div><strong>Sarah Reynolds</strong><br /><span>Bundle Customer</span></div>
-            </div>
-          </div>
-          <div class="testimonial-card">
-            <div class="stars">★★★★★</div>
-            <p>"I've been with HJB for 5 years. Great rates, honest service, and the online portal makes managing policies incredibly convenient."</p>
-            <div class="testimonial-author">
-              <div class="author-avatar">DK</div>
-              <div><strong>David Kim</strong><br /><span>Home Insurance Customer</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- CTA Banner -->
     <section class="cta-banner">

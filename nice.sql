@@ -19,39 +19,6 @@ USE `nice`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `hjb_autopolicy`
---
-
-DROP TABLE IF EXISTS `hjb_autopolicy`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `hjb_autopolicy` (
-  `AP_ID` int NOT NULL COMMENT 'Auto policy ID',
-  `SDATE` date NOT NULL COMMENT 'auto policy start date',
-  `EDATE` date NOT NULL COMMENT 'Auto policy end date',
-  `Amount` decimal(10,2) NOT NULL COMMENT 'auto policy insurance amount',
-  `Status` char(1) NOT NULL COMMENT 'C for current, E for expired',
-  `HJB_CUSTOMER_CUST_ID` int DEFAULT NULL COMMENT 'Customer id number',
-  PRIMARY KEY (`AP_ID`),
-  KEY `HJB_AUTOPOLICY_HJB_CUSTOMER_FK` (`HJB_CUSTOMER_CUST_ID`),
-  CONSTRAINT `HJB_AUTOPOLICY_HJB_CUSTOMER_FK` FOREIGN KEY (`HJB_CUSTOMER_CUST_ID`) REFERENCES `hjb_customer` (`CUST_ID`),
-  CONSTRAINT `AP_Status_CK` CHECK ((`Status` in (_utf8mb4'C',_utf8mb4'E'))),
-  CONSTRAINT `Auto_Amount_CK` CHECK ((`Amount` >= 0.01)),
-  CONSTRAINT `HJB_AUTOPOLICY_CK_SEDATE` CHECK ((`EDATE` > `SDATE`))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `hjb_autopolicy`
---
-
-LOCK TABLES `hjb_autopolicy` WRITE;
-/*!40000 ALTER TABLE `hjb_autopolicy` DISABLE KEYS */;
-INSERT INTO `hjb_autopolicy` VALUES (101,'2025-01-10','2026-01-10',850.00,'C',1),(102,'2025-02-15','2026-02-15',1200.50,'C',2),(103,'2024-06-01','2025-06-01',980.00,'E',4),(104,'2025-03-20','2026-03-20',1100.00,'C',5),(105,'2025-01-05','2026-01-05',750.00,'C',7),(106,'2024-12-10','2025-12-10',1350.25,'C',8),(107,'2025-04-01','2026-04-01',890.00,'C',10),(108,'2025-02-28','2026-02-28',1050.00,'C',11),(109,'2024-09-15','2025-09-15',1150.00,'E',13),(110,'2025-01-25','2026-01-25',920.75,'C',14),(111,'2025-03-05','2026-03-05',1280.00,'C',16),(112,'2025-02-14','2026-02-14',990.00,'C',17),(113,'2024-11-01','2025-11-01',1100.50,'C',19),(114,'2025-05-15','2026-05-15',870.00,'C',20),(115,'2025-01-30','2026-01-30',1400.00,'C',22),(116,'2025-03-22','2026-03-22',1050.20,'C',23),(117,'2024-07-18','2025-07-18',950.00,'E',25),(118,'2025-02-08','2026-02-08',1180.00,'C',26),(119,'2025-04-12','2026-04-12',1250.00,'C',28),(120,'2025-01-15','2026-01-15',900.00,'C',29),(121,'2025-02-01','2026-02-01',880.00,'C',1),(122,'2025-03-10','2026-03-10',1120.00,'C',2),(123,'2025-01-20','2026-01-20',1050.00,'C',4),(124,'2025-04-05','2026-04-05',960.00,'C',5),(125,'2025-05-01','2026-05-01',1300.00,'C',7),(126,'2025-02-18','2026-02-18',1080.00,'C',8),(127,'2025-03-25','2026-03-25',1150.00,'C',10),(128,'2025-01-12','2026-01-12',940.00,'C',11),(129,'2025-04-22','2026-04-22',1220.00,'C',13),(130,'2025-02-05','2026-02-05',1000.00,'C',14);
-/*!40000 ALTER TABLE `hjb_autopolicy` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `hjb_customer`
 --
 
@@ -87,7 +54,181 @@ INSERT INTO `hjb_customer` VALUES (1,'James','Smith','M','M','B','123 Maple St',
 UNLOCK TABLES;
 
 --
+-- Table structure for table `hjb_policy` (SUPERTYPE for AutoPolicy and HomePolicy)
+--
+
+DROP TABLE IF EXISTS `hjb_policy`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `hjb_policy` (
+  `POLICY_ID` int NOT NULL AUTO_INCREMENT COMMENT 'Policy ID (shared by auto and home subtypes)',
+  `SDATE` date NOT NULL COMMENT 'Policy start date',
+  `EDATE` date NOT NULL COMMENT 'Policy end date',
+  `Amount` decimal(10,2) NOT NULL COMMENT 'Insurance premium amount',
+  `Status` char(1) NOT NULL COMMENT 'C for current, E for expired',
+  `Policy_Type` char(1) NOT NULL COMMENT 'A for Auto, H for Home',
+  `HJB_CUSTOMER_CUST_ID` int NOT NULL COMMENT 'Customer id (mandatory)',
+  PRIMARY KEY (`POLICY_ID`),
+  KEY `HJB_POLICY_HJB_CUSTOMER_FK` (`HJB_CUSTOMER_CUST_ID`),
+  CONSTRAINT `HJB_POLICY_HJB_CUSTOMER_FK` FOREIGN KEY (`HJB_CUSTOMER_CUST_ID`) REFERENCES `hjb_customer` (`CUST_ID`),
+  CONSTRAINT `Policy_Type_CK` CHECK ((`Policy_Type` in (_utf8mb4'A',_utf8mb4'H'))),
+  CONSTRAINT `Policy_Status_CK` CHECK ((`Status` in (_utf8mb4'C',_utf8mb4'E'))),
+  CONSTRAINT `Policy_Amount_CK` CHECK ((`Amount` >= 0.01)),
+  CONSTRAINT `HJB_POLICY_CK_SEDATE` CHECK ((`EDATE` > `SDATE`))
+) ENGINE=InnoDB AUTO_INCREMENT=231 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `hjb_policy`
+--
+
+LOCK TABLES `hjb_policy` WRITE;
+/*!40000 ALTER TABLE `hjb_policy` DISABLE KEYS */;
+INSERT INTO `hjb_policy` VALUES
+  (101,'2025-01-10','2026-01-10',850.00,'C','A',1),
+  (102,'2025-02-15','2026-02-15',1200.50,'C','A',2),
+  (103,'2024-06-01','2025-06-01',980.00,'E','A',4),
+  (104,'2025-03-20','2026-03-20',1100.00,'C','A',5),
+  (105,'2025-01-05','2026-01-05',750.00,'C','A',7),
+  (106,'2024-12-10','2025-12-10',1350.25,'C','A',8),
+  (107,'2025-04-01','2026-04-01',890.00,'C','A',10),
+  (108,'2025-02-28','2026-02-28',1050.00,'C','A',11),
+  (109,'2024-09-15','2025-09-15',1150.00,'E','A',13),
+  (110,'2025-01-25','2026-01-25',920.75,'C','A',14),
+  (111,'2025-03-05','2026-03-05',1280.00,'C','A',16),
+  (112,'2025-02-14','2026-02-14',990.00,'C','A',17),
+  (113,'2024-11-01','2025-11-01',1100.50,'C','A',19),
+  (114,'2025-05-15','2026-05-15',870.00,'C','A',20),
+  (115,'2025-01-30','2026-01-30',1400.00,'C','A',22),
+  (116,'2025-03-22','2026-03-22',1050.20,'C','A',23),
+  (117,'2024-07-18','2025-07-18',950.00,'E','A',25),
+  (118,'2025-02-08','2026-02-08',1180.00,'C','A',26),
+  (119,'2025-04-12','2026-04-12',1250.00,'C','A',28),
+  (120,'2025-01-15','2026-01-15',900.00,'C','A',29),
+  (121,'2025-02-01','2026-02-01',880.00,'C','A',1),
+  (122,'2025-03-10','2026-03-10',1120.00,'C','A',2),
+  (123,'2025-01-20','2026-01-20',1050.00,'C','A',4),
+  (124,'2025-04-05','2026-04-05',960.00,'C','A',5),
+  (125,'2025-05-01','2026-05-01',1300.00,'C','A',7),
+  (126,'2025-02-18','2026-02-18',1080.00,'C','A',8),
+  (127,'2025-03-25','2026-03-25',1150.00,'C','A',10),
+  (128,'2025-01-12','2026-01-12',940.00,'C','A',11),
+  (129,'2025-04-22','2026-04-22',1220.00,'C','A',13),
+  (130,'2025-02-05','2026-02-05',1000.00,'C','A',14),
+  (201,'2025-01-15','2026-01-15',2500.00,'C','H',3),
+  (202,'2025-02-10','2026-02-10',3100.50,'C','H',4),
+  (203,'2024-05-20','2025-05-20',1800.00,'E','H',6),
+  (204,'2025-03-01','2026-03-01',4200.00,'C','H',7),
+  (205,'2025-01-01','2026-01-01',2750.00,'C','H',9),
+  (206,'2024-11-15','2025-11-15',3300.25,'C','H',10),
+  (207,'2025-04-12','2026-04-12',2900.00,'C','H',12),
+  (208,'2025-02-28','2026-02-28',3600.00,'C','H',13),
+  (209,'2024-08-05','2025-08-05',2100.00,'E','H',15),
+  (210,'2025-01-20','2026-01-20',4500.75,'C','H',16),
+  (211,'2025-03-15','2026-03-15',3800.00,'C','H',18),
+  (212,'2025-02-14','2026-02-14',3200.00,'C','H',19),
+  (213,'2024-12-01','2025-12-01',2400.50,'C','H',21),
+  (214,'2025-05-10','2026-05-10',4100.00,'C','H',22),
+  (215,'2025-01-30','2026-01-30',2950.00,'C','H',24),
+  (216,'2025-03-22','2026-03-22',3700.20,'C','H',25),
+  (217,'2024-06-18','2025-06-18',1950.00,'E','H',27),
+  (218,'2025-02-05','2026-02-05',4400.00,'C','H',28),
+  (219,'2025-04-01','2026-04-01',3150.00,'C','H',30),
+  (220,'2025-01-10','2026-01-10',2800.00,'C','H',3),
+  (221,'2025-02-15','2026-02-15',3500.00,'C','H',4),
+  (222,'2025-03-10','2026-03-10',3900.00,'C','H',6),
+  (223,'2025-01-25','2026-01-25',2600.00,'C','H',7),
+  (224,'2025-04-05','2026-04-05',4300.00,'C','H',9),
+  (225,'2025-05-01','2026-05-01',3200.00,'C','H',10),
+  (226,'2025-02-20','2026-02-20',3400.00,'C','H',12),
+  (227,'2025-03-30','2026-03-30',4100.00,'C','H',13),
+  (228,'2025-01-05','2026-01-05',2700.00,'C','H',15),
+  (229,'2025-04-20','2026-04-20',4600.00,'C','H',16),
+  (230,'2025-02-12','2026-02-12',3300.00,'C','H',18);
+/*!40000 ALTER TABLE `hjb_policy` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `hjb_autopolicy` (SUBTYPE of hjb_policy)
+--
+
+DROP TABLE IF EXISTS `hjb_autopolicy`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `hjb_autopolicy` (
+  `AP_ID` int NOT NULL COMMENT 'Auto policy ID (equals POLICY_ID in hjb_policy)',
+  PRIMARY KEY (`AP_ID`),
+  CONSTRAINT `HJB_AUTOPOLICY_HJB_POLICY_FK` FOREIGN KEY (`AP_ID`) REFERENCES `hjb_policy` (`POLICY_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `hjb_autopolicy`
+--
+
+LOCK TABLES `hjb_autopolicy` WRITE;
+/*!40000 ALTER TABLE `hjb_autopolicy` DISABLE KEYS */;
+INSERT INTO `hjb_autopolicy` VALUES (101),(102),(103),(104),(105),(106),(107),(108),(109),(110),(111),(112),(113),(114),(115),(116),(117),(118),(119),(120),(121),(122),(123),(124),(125),(126),(127),(128),(129),(130);
+/*!40000 ALTER TABLE `hjb_autopolicy` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `hjb_homepolicy` (SUBTYPE of hjb_policy)
+--
+
+DROP TABLE IF EXISTS `hjb_homepolicy`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `hjb_homepolicy` (
+  `HP_ID` int NOT NULL COMMENT 'Home policy ID (equals POLICY_ID in hjb_policy)',
+  PRIMARY KEY (`HP_ID`),
+  CONSTRAINT `HJB_HOMEPOLICY_HJB_POLICY_FK` FOREIGN KEY (`HP_ID`) REFERENCES `hjb_policy` (`POLICY_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `hjb_homepolicy`
+--
+
+LOCK TABLES `hjb_homepolicy` WRITE;
+/*!40000 ALTER TABLE `hjb_homepolicy` DISABLE KEYS */;
+INSERT INTO `hjb_homepolicy` VALUES (201),(202),(203),(204),(205),(206),(207),(208),(209),(210),(211),(212),(213),(214),(215),(216),(217),(218),(219),(220),(221),(222),(223),(224),(225),(226),(227),(228),(229),(230);
+/*!40000 ALTER TABLE `hjb_homepolicy` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `hjb_vehicle`
+--
+
+DROP TABLE IF EXISTS `hjb_vehicle`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `hjb_vehicle` (
+  `VIN` varchar(17) NOT NULL COMMENT 'Vehicle identification number',
+  `MMY` varchar(50) NOT NULL COMMENT 'vehicle make-model-year',
+  `Status` char(1) NOT NULL COMMENT 'L:leased F: financed O:owned',
+  `HJB_AUTOPOLICY_AP_ID` int NOT NULL COMMENT 'Auto policy ID (mandatory)',
+  PRIMARY KEY (`VIN`),
+  KEY `HJB_VEHICLE_HJB_AUTOPOLICY_FK` (`HJB_AUTOPOLICY_AP_ID`),
+  CONSTRAINT `HJB_VEHICLE_HJB_AUTOPOLICY_FK` FOREIGN KEY (`HJB_AUTOPOLICY_AP_ID`) REFERENCES `hjb_autopolicy` (`AP_ID`),
+  CONSTRAINT `Vehicle_status_CK` CHECK ((`Status` in (_utf8mb4'F',_utf8mb4'L',_utf8mb4'O'))),
+  CONSTRAINT `VIN_Length_CK` CHECK ((char_length(`VIN`) = 17))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `hjb_vehicle`
+--
+
+LOCK TABLES `hjb_vehicle` WRITE;
+/*!40000 ALTER TABLE `hjb_vehicle` DISABLE KEYS */;
+INSERT INTO `hjb_vehicle` VALUES ('VIN10000000000001','2022 Toyota Camry','O',101),('VIN10000000000002','2021 Honda Accord','F',102),('VIN10000000000003','2020 Ford F-150','O',103),('VIN10000000000004','2023 Tesla Model 3','L',104),('VIN10000000000005','2019 Chevrolet Malibu','O',105),('VIN10000000000006','2022 BMW X5','F',106),('VIN10000000000007','2021 Audi A4','L',107),('VIN10000000000008','2020 Nissan Altima','O',108),('VIN10000000000009','2023 Jeep Grand Cherokee','F',109),('VIN10000000000010','2022 Subaru Outback','O',110),('VIN10000000000011','2021 Mercedes-Benz C300','L',111),('VIN10000000000012','2018 Volkswagen Jetta','O',112),('VIN10000000000013','2022 Hyundai Tucson','F',113),('VIN10000000000014','2023 Kia Telluride','O',114),('VIN10000000000015','2021 Lexus RX 350','F',115),('VIN10000000000016','2020 Mazda CX-5','O',116),('VIN10000000000017','2022 Porsche Macan','L',117),('VIN10000000000018','2021 Dodge Ram 1500','O',118),('VIN10000000000019','2023 Rivian R1S','F',119),('VIN10000000000020','2022 Volvo XC90','L',120),('VIN10000000000021','2020 Chrysler 300','O',121),('VIN10000000000022','2021 Cadillac Escalade','F',122),('VIN10000000000023','2019 Buick Enclave','O',123),('VIN10000000000024','2022 GMC Sierra','L',124),('VIN10000000000025','2023 Acura MDX','O',125),('VIN10000000000026','2021 Infiniti Q50','F',126),('VIN10000000000027','2020 Lincoln Navigator','L',127),('VIN10000000000028','2022 Land Rover Defender','O',128),('VIN10000000000029','2023 Ford Mustang','F',129),('VIN10000000000030','2021 Toyota RAV4','O',130);
+/*!40000 ALTER TABLE `hjb_vehicle` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `hjb_driver`
+-- 1:M with hjb_vehicle: one vehicle can have many drivers; each driver belongs to one vehicle
 --
 
 DROP TABLE IF EXISTS `hjb_driver`;
@@ -98,7 +239,10 @@ CREATE TABLE `hjb_driver` (
   `FNAME` varchar(20) NOT NULL COMMENT 'First name of driver',
   `LNAME` varchar(20) NOT NULL COMMENT 'Last name of driver',
   `Birthday` date NOT NULL COMMENT 'birthday to derive age',
-  PRIMARY KEY (`Driver_License`)
+  `HJB_VEHICLE_VIN` varchar(17) NOT NULL COMMENT 'Vehicle VIN (mandatory - 1:M relation)',
+  PRIMARY KEY (`Driver_License`),
+  KEY `HJB_DRIVER_HJB_VEHICLE_FK` (`HJB_VEHICLE_VIN`),
+  CONSTRAINT `HJB_DRIVER_HJB_VEHICLE_FK` FOREIGN KEY (`HJB_VEHICLE_VIN`) REFERENCES `hjb_vehicle` (`VIN`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -108,7 +252,7 @@ CREATE TABLE `hjb_driver` (
 
 LOCK TABLES `hjb_driver` WRITE;
 /*!40000 ALTER TABLE `hjb_driver` DISABLE KEYS */;
-INSERT INTO `hjb_driver` VALUES ('LIC001','James','Smith','1985-05-12'),('LIC002','Mary','Johnson','1990-08-22'),('LIC003','Robert','Williams','1978-11-05'),('LIC004','Patricia','Brown','1992-03-30'),('LIC005','Michael','Jones','1982-07-15'),('LIC006','Jennifer','Garcia','1988-12-01'),('LIC007','William','Miller','1995-04-18'),('LIC008','Elizabeth','Davis','1980-09-25'),('LIC009','David','Rodriguez','1987-01-10'),('LIC010','Barbara','Martinez','1991-06-20'),('LIC011','Richard','Hernandez','1984-03-15'),('LIC012','Susan','Lopez','1975-10-12'),('LIC013','Joseph','Gonzalez','1993-02-28'),('LIC014','Jessica','Wilson','1989-08-05'),('LIC015','Thomas','Anderson','1981-12-20'),('LIC016','Sarah','Thomas','1994-05-15'),('LIC017','Charles','Taylor','1986-01-30'),('LIC018','Karen','Moore','1979-04-14'),('LIC019','Christopher','Jackson','1992-11-11'),('LIC020','Nancy','Martin','1983-06-01'),('LIC021','Daniel','Lee','1990-02-14'),('LIC022','Lisa','Perez','1987-08-30'),('LIC023','Matthew','Thompson','1995-12-25'),('LIC024','Betty','White','1982-10-15'),('LIC025','Anthony','Harris','1988-03-12'),('LIC026','Sandra','Sanchez','1991-11-19'),('LIC027','Mark','Clark','1984-07-07'),('LIC028','Ashley','Ramirez','1978-01-05'),('LIC029','Steven','Lewis','1989-09-18'),('LIC030','Emily','Robinson','1993-05-20');
+INSERT INTO `hjb_driver` VALUES ('LIC001','James','Smith','1985-05-12','VIN10000000000001'),('LIC002','Mary','Johnson','1990-08-22','VIN10000000000002'),('LIC003','Robert','Williams','1978-11-05','VIN10000000000003'),('LIC004','Patricia','Brown','1992-03-30','VIN10000000000004'),('LIC005','Michael','Jones','1982-07-15','VIN10000000000005'),('LIC006','Jennifer','Garcia','1988-12-01','VIN10000000000006'),('LIC007','William','Miller','1995-04-18','VIN10000000000007'),('LIC008','Elizabeth','Davis','1980-09-25','VIN10000000000008'),('LIC009','David','Rodriguez','1987-01-10','VIN10000000000009'),('LIC010','Barbara','Martinez','1991-06-20','VIN10000000000010'),('LIC011','Richard','Hernandez','1984-03-15','VIN10000000000011'),('LIC012','Susan','Lopez','1975-10-12','VIN10000000000012'),('LIC013','Joseph','Gonzalez','1993-02-28','VIN10000000000013'),('LIC014','Jessica','Wilson','1989-08-05','VIN10000000000014'),('LIC015','Thomas','Anderson','1981-12-20','VIN10000000000015'),('LIC016','Sarah','Thomas','1994-05-15','VIN10000000000016'),('LIC017','Charles','Taylor','1986-01-30','VIN10000000000017'),('LIC018','Karen','Moore','1979-04-14','VIN10000000000018'),('LIC019','Christopher','Jackson','1992-11-11','VIN10000000000019'),('LIC020','Nancy','Martin','1983-06-01','VIN10000000000020'),('LIC021','Daniel','Lee','1990-02-14','VIN10000000000021'),('LIC022','Lisa','Perez','1987-08-30','VIN10000000000022'),('LIC023','Matthew','Thompson','1995-12-25','VIN10000000000023'),('LIC024','Betty','White','1982-10-15','VIN10000000000024'),('LIC025','Anthony','Harris','1988-03-12','VIN10000000000025'),('LIC026','Sandra','Sanchez','1991-11-19','VIN10000000000026'),('LIC027','Mark','Clark','1984-07-07','VIN10000000000027'),('LIC028','Ashley','Ramirez','1978-01-05','VIN10000000000028'),('LIC029','Steven','Lewis','1989-09-18','VIN10000000000029'),('LIC030','Emily','Robinson','1993-05-20','VIN10000000000030');
 /*!40000 ALTER TABLE `hjb_driver` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -129,7 +273,7 @@ CREATE TABLE `hjb_home` (
   `HSS` int NOT NULL COMMENT 'Home security system: 0 or 1',
   `SP` char(1) DEFAULT NULL COMMENT 'Swimming pool: U O I M or null',
   `Basement` int NOT NULL COMMENT 'Basement: 0 or 1',
-  `HJB_HOMEPOLICY_HP_ID` int NOT NULL COMMENT 'Home policy id number',
+  `HJB_HOMEPOLICY_HP_ID` int NOT NULL COMMENT 'Home policy id number (mandatory)',
   PRIMARY KEY (`Home_ID`),
   KEY `HJB_HOME_HJB_HOMEPOLICY_FK` (`HJB_HOMEPOLICY_HP_ID`),
   CONSTRAINT `HJB_HOME_HJB_HOMEPOLICY_FK` FOREIGN KEY (`HJB_HOMEPOLICY_HP_ID`) REFERENCES `hjb_homepolicy` (`HP_ID`),
@@ -153,160 +297,133 @@ INSERT INTO `hjb_home` VALUES (501,'2015-05-20',450000.00,2500,'S',1,1,'O',1,201
 UNLOCK TABLES;
 
 --
--- Table structure for table `hjb_homepolicy`
+-- Table structure for table `hjb_auto_invoice`
+-- Invoices for Auto policies only (separated from home to prevent overlap)
 --
 
-DROP TABLE IF EXISTS `hjb_homepolicy`;
+DROP TABLE IF EXISTS `hjb_auto_invoice`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `hjb_homepolicy` (
-  `HP_ID` int NOT NULL COMMENT 'Home policy id number',
-  `SDATE` date NOT NULL COMMENT 'start date',
-  `EDATE` date NOT NULL COMMENT 'end date',
-  `Amount` decimal(10,2) NOT NULL COMMENT 'home insurance premium amount',
-  `Status` char(1) NOT NULL COMMENT 'home insurance term: C for current, E for expired',
-  `HJB_CUSTOMER_CUST_ID` int DEFAULT NULL COMMENT 'Customer id number',
-  PRIMARY KEY (`HP_ID`),
-  KEY `HJB_HOMEPOLICY_HJB_CUSTOMER_FK` (`HJB_CUSTOMER_CUST_ID`),
-  CONSTRAINT `HJB_HOMEPOLICY_HJB_CUSTOMER_FK` FOREIGN KEY (`HJB_CUSTOMER_CUST_ID`) REFERENCES `hjb_customer` (`CUST_ID`),
-  CONSTRAINT `HJB_HOMEPOLICY_CK_SEDATE` CHECK ((`EDATE` > `SDATE`)),
-  CONSTRAINT `HP_status_CK` CHECK ((`Status` in (_utf8mb4'C',_utf8mb4'E'))),
-  CONSTRAINT `HPAmount_CK` CHECK ((`Amount` >= 0.01))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `hjb_homepolicy`
---
-
-LOCK TABLES `hjb_homepolicy` WRITE;
-/*!40000 ALTER TABLE `hjb_homepolicy` DISABLE KEYS */;
-INSERT INTO `hjb_homepolicy` VALUES (201,'2025-01-15','2026-01-15',2500.00,'C',3),(202,'2025-02-10','2026-02-10',3100.50,'C',4),(203,'2024-05-20','2025-05-20',1800.00,'E',6),(204,'2025-03-01','2026-03-01',4200.00,'C',7),(205,'2025-01-01','2026-01-01',2750.00,'C',9),(206,'2024-11-15','2025-11-15',3300.25,'C',10),(207,'2025-04-12','2026-04-12',2900.00,'C',12),(208,'2025-02-28','2026-02-28',3600.00,'C',13),(209,'2024-08-05','2025-08-05',2100.00,'E',15),(210,'2025-01-20','2026-01-20',4500.75,'C',16),(211,'2025-03-15','2026-03-15',3800.00,'C',18),(212,'2025-02-14','2026-02-14',3200.00,'C',19),(213,'2024-12-01','2025-12-01',2400.50,'C',21),(214,'2025-05-10','2026-05-10',4100.00,'C',22),(215,'2025-01-30','2026-01-30',2950.00,'C',24),(216,'2025-03-22','2026-03-22',3700.20,'C',25),(217,'2024-06-18','2025-06-18',1950.00,'E',27),(218,'2025-02-05','2026-02-05',4400.00,'C',28),(219,'2025-04-01','2026-04-01',3150.00,'C',30),(220,'2025-01-10','2026-01-10',2800.00,'C',3),(221,'2025-02-15','2026-02-15',3500.00,'C',4),(222,'2025-03-10','2026-03-10',3900.00,'C',6),(223,'2025-01-25','2026-01-25',2600.00,'C',7),(224,'2025-04-05','2026-04-05',4300.00,'C',9),(225,'2025-05-01','2026-05-01',3200.00,'C',10),(226,'2025-02-20','2026-02-20',3400.00,'C',12),(227,'2025-03-30','2026-03-30',4100.00,'C',13),(228,'2025-01-05','2026-01-05',2700.00,'C',15),(229,'2025-04-20','2026-04-20',4600.00,'C',16),(230,'2025-02-12','2026-02-12',3300.00,'C',18);
-/*!40000 ALTER TABLE `hjb_homepolicy` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `hjb_invoice`
---
-
-DROP TABLE IF EXISTS `hjb_invoice`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `hjb_invoice` (
-  `I_ID` int NOT NULL COMMENT 'invoice ID',
-  `I_Date` date NOT NULL COMMENT 'invoice date',
-  `Due` date NOT NULL COMMENT 'invoice due date',
-  `Amount` decimal(10,2) NOT NULL COMMENT 'invoice amount',
-  `HJB_HOMEPOLICY_HP_ID` int DEFAULT NULL COMMENT 'Home policy id number (Conditional)',
-  `HJB_AUTOPOLICY_AP_ID` int DEFAULT NULL COMMENT 'Auto policy ID (Conditional)',
+CREATE TABLE `hjb_auto_invoice` (
+  `I_ID` int NOT NULL AUTO_INCREMENT COMMENT 'Auto invoice ID',
+  `I_Date` date NOT NULL COMMENT 'Invoice date',
+  `Due` date NOT NULL COMMENT 'Invoice due date',
+  `Amount` decimal(10,2) NOT NULL COMMENT 'Invoice amount',
+  `HJB_AUTOPOLICY_AP_ID` int NOT NULL COMMENT 'Auto policy ID (mandatory)',
   PRIMARY KEY (`I_ID`),
-  KEY `HJB_INVOICE_HJB_AUTOPOLICY_FK` (`HJB_AUTOPOLICY_AP_ID`),
-  KEY `HJB_INVOICE_HJB_HOMEPOLICY_FK` (`HJB_HOMEPOLICY_HP_ID`),
-  CONSTRAINT `HJB_INVOICE_HJB_AUTOPOLICY_FK` FOREIGN KEY (`HJB_AUTOPOLICY_AP_ID`) REFERENCES `hjb_autopolicy` (`AP_ID`),
-  CONSTRAINT `HJB_INVOICE_HJB_HOMEPOLICY_FK` FOREIGN KEY (`HJB_HOMEPOLICY_HP_ID`) REFERENCES `hjb_homepolicy` (`HP_ID`),
-  CONSTRAINT `Invoice_Amount_CK` CHECK ((`Amount` >= 0.01)),
-  CONSTRAINT `INVOICE_DUE_IDATE` CHECK ((`Due` > `I_Date`)),
-  CONSTRAINT `INVOICE_HP_AP_ID` CHECK ((((`HJB_HOMEPOLICY_HP_ID` is not null) and (`HJB_AUTOPOLICY_AP_ID` is null)) or ((`HJB_HOMEPOLICY_HP_ID` is null) and (`HJB_AUTOPOLICY_AP_ID` is not null))))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `HJB_AUTO_INVOICE_HJB_AUTOPOLICY_FK` (`HJB_AUTOPOLICY_AP_ID`),
+  CONSTRAINT `HJB_AUTO_INVOICE_HJB_AUTOPOLICY_FK` FOREIGN KEY (`HJB_AUTOPOLICY_AP_ID`) REFERENCES `hjb_autopolicy` (`AP_ID`),
+  CONSTRAINT `Auto_Invoice_Amount_CK` CHECK ((`Amount` >= 0.01)),
+  CONSTRAINT `Auto_Invoice_DUE_IDATE` CHECK ((`Due` > `I_Date`))
+) ENGINE=InnoDB AUTO_INCREMENT=816 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `hjb_invoice`
+-- Dumping data for table `hjb_auto_invoice`
 --
 
-LOCK TABLES `hjb_invoice` WRITE;
-/*!40000 ALTER TABLE `hjb_invoice` DISABLE KEYS */;
-INSERT INTO `hjb_invoice` VALUES (801,'2025-01-11','2025-01-31',850.00,NULL,101),(802,'2025-02-16','2025-03-05',1200.50,NULL,102),(803,'2024-06-02','2024-06-20',980.00,NULL,103),(804,'2025-03-21','2025-04-10',1100.00,NULL,104),(805,'2025-01-06','2025-01-25',750.00,NULL,105),(806,'2024-12-11','2024-12-30',1350.25,NULL,106),(807,'2025-04-02','2025-04-20',890.00,NULL,107),(808,'2025-03-01','2025-03-15',1050.00,NULL,108),(809,'2024-09-16','2024-10-05',1150.00,NULL,109),(810,'2025-01-26','2025-02-10',920.75,NULL,110),(811,'2025-03-06','2025-03-25',1280.00,NULL,111),(812,'2025-02-15','2025-03-01',990.00,NULL,112),(813,'2024-11-02','2024-11-20',1100.50,NULL,113),(814,'2025-05-16','2025-06-05',870.00,NULL,114),(815,'2025-01-31','2025-02-15',1400.00,NULL,115),(816,'2025-01-16','2025-02-05',2500.00,201,NULL),(817,'2025-02-11','2025-03-01',3100.50,202,NULL),(818,'2024-05-21','2024-06-10',1800.00,203,NULL),(819,'2025-03-02','2025-03-20',4200.00,204,NULL),(820,'2025-01-02','2025-01-20',2750.00,205,NULL),(821,'2024-11-16','2024-12-05',3300.25,206,NULL),(822,'2025-04-13','2025-05-01',2900.00,207,NULL),(823,'2025-03-01','2025-03-20',3600.00,208,NULL),(824,'2024-08-06','2024-08-25',2100.00,209,NULL),(825,'2025-01-21','2025-02-10',4500.75,210,NULL),(826,'2025-03-16','2025-04-05',3800.00,211,NULL),(827,'2025-02-15','2025-03-05',3200.00,212,NULL),(828,'2024-12-02','2024-12-20',2400.50,213,NULL),(829,'2025-05-11','2025-05-30',4100.00,214,NULL),(830,'2025-01-31','2025-02-20',2950.00,215,NULL);
-/*!40000 ALTER TABLE `hjb_invoice` ENABLE KEYS */;
+LOCK TABLES `hjb_auto_invoice` WRITE;
+/*!40000 ALTER TABLE `hjb_auto_invoice` DISABLE KEYS */;
+INSERT INTO `hjb_auto_invoice` VALUES (801,'2025-01-11','2025-01-31',850.00,101),(802,'2025-02-16','2025-03-05',1200.50,102),(803,'2024-06-02','2024-06-20',980.00,103),(804,'2025-03-21','2025-04-10',1100.00,104),(805,'2025-01-06','2025-01-25',750.00,105),(806,'2024-12-11','2024-12-30',1350.25,106),(807,'2025-04-02','2025-04-20',890.00,107),(808,'2025-03-01','2025-03-15',1050.00,108),(809,'2024-09-16','2024-10-05',1150.00,109),(810,'2025-01-26','2025-02-10',920.75,110),(811,'2025-03-06','2025-03-25',1280.00,111),(812,'2025-02-15','2025-03-01',990.00,112),(813,'2024-11-02','2024-11-20',1100.50,113),(814,'2025-05-16','2025-06-05',870.00,114),(815,'2025-01-31','2025-02-15',1400.00,115);
+/*!40000 ALTER TABLE `hjb_auto_invoice` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `hjb_payment`
+-- Table structure for table `hjb_home_invoice`
+-- Invoices for Home policies only (separated from auto to prevent overlap)
 --
 
-DROP TABLE IF EXISTS `hjb_payment`;
+DROP TABLE IF EXISTS `hjb_home_invoice`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `hjb_payment` (
-  `P_ID` int NOT NULL COMMENT 'Payment ID',
+CREATE TABLE `hjb_home_invoice` (
+  `I_ID` int NOT NULL AUTO_INCREMENT COMMENT 'Home invoice ID',
+  `I_Date` date NOT NULL COMMENT 'Invoice date',
+  `Due` date NOT NULL COMMENT 'Invoice due date',
+  `Amount` decimal(10,2) NOT NULL COMMENT 'Invoice amount',
+  `HJB_HOMEPOLICY_HP_ID` int NOT NULL COMMENT 'Home policy ID (mandatory)',
+  PRIMARY KEY (`I_ID`),
+  KEY `HJB_HOME_INVOICE_HJB_HOMEPOLICY_FK` (`HJB_HOMEPOLICY_HP_ID`),
+  CONSTRAINT `HJB_HOME_INVOICE_HJB_HOMEPOLICY_FK` FOREIGN KEY (`HJB_HOMEPOLICY_HP_ID`) REFERENCES `hjb_homepolicy` (`HP_ID`),
+  CONSTRAINT `Home_Invoice_Amount_CK` CHECK ((`Amount` >= 0.01)),
+  CONSTRAINT `Home_Invoice_DUE_IDATE` CHECK ((`Due` > `I_Date`))
+) ENGINE=InnoDB AUTO_INCREMENT=831 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `hjb_home_invoice`
+--
+
+LOCK TABLES `hjb_home_invoice` WRITE;
+/*!40000 ALTER TABLE `hjb_home_invoice` DISABLE KEYS */;
+INSERT INTO `hjb_home_invoice` VALUES (816,'2025-01-16','2025-02-05',2500.00,201),(817,'2025-02-11','2025-03-01',3100.50,202),(818,'2024-05-21','2024-06-10',1800.00,203),(819,'2025-03-02','2025-03-20',4200.00,204),(820,'2025-01-02','2025-01-20',2750.00,205),(821,'2024-11-16','2024-12-05',3300.25,206),(822,'2025-04-13','2025-05-01',2900.00,207),(823,'2025-03-01','2025-03-20',3600.00,208),(824,'2024-08-06','2024-08-25',2100.00,209),(825,'2025-01-21','2025-02-10',4500.75,210),(826,'2025-03-16','2025-04-05',3800.00,211),(827,'2025-02-15','2025-03-05',3200.00,212),(828,'2024-12-02','2024-12-20',2400.50,213),(829,'2025-05-11','2025-05-30',4100.00,214),(830,'2025-01-31','2025-02-20',2950.00,215);
+/*!40000 ALTER TABLE `hjb_home_invoice` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `hjb_auto_payment`
+-- Payments for Auto invoices only
+--
+
+DROP TABLE IF EXISTS `hjb_auto_payment`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `hjb_auto_payment` (
+  `P_ID` int NOT NULL AUTO_INCREMENT COMMENT 'Auto payment ID',
   `Method` varchar(20) NOT NULL COMMENT 'Payment method: Check, Credit, Debit, PayPal',
-  `HJB_INVOICE_I_ID` int NOT NULL COMMENT 'invoice ID',
+  `HJB_AUTO_INVOICE_I_ID` int NOT NULL COMMENT 'Auto invoice ID (mandatory)',
   `Pay_Amount` decimal(10,2) NOT NULL COMMENT 'Payment amount',
-  `Pay_Date` date NOT NULL COMMENT 'payment date',
+  `Pay_Date` date NOT NULL COMMENT 'Payment date',
   PRIMARY KEY (`P_ID`),
-  KEY `HJB_PAYMENT_HJB_INVOICE_FK` (`HJB_INVOICE_I_ID`),
-  CONSTRAINT `HJB_PAYMENT_HJB_INVOICE_FK` FOREIGN KEY (`HJB_INVOICE_I_ID`) REFERENCES `hjb_invoice` (`I_ID`),
-  CONSTRAINT `Pay_Amount_CK` CHECK ((`Pay_Amount` >= 0.01)),
-  CONSTRAINT `Pay_Method_CK` CHECK ((`Method` in (_utf8mb4'Check',_utf8mb4'Credit',_utf8mb4'Debit',_utf8mb4'PayPal')))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `HJB_AUTO_PAYMENT_HJB_AUTO_INVOICE_FK` (`HJB_AUTO_INVOICE_I_ID`),
+  CONSTRAINT `HJB_AUTO_PAYMENT_HJB_AUTO_INVOICE_FK` FOREIGN KEY (`HJB_AUTO_INVOICE_I_ID`) REFERENCES `hjb_auto_invoice` (`I_ID`),
+  CONSTRAINT `Auto_Pay_Amount_CK` CHECK ((`Pay_Amount` >= 0.01)),
+  CONSTRAINT `Auto_Pay_Method_CK` CHECK ((`Method` in (_utf8mb4'Check',_utf8mb4'Credit',_utf8mb4'Debit',_utf8mb4'PayPal')))
+) ENGINE=InnoDB AUTO_INCREMENT=916 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `hjb_payment`
+-- Dumping data for table `hjb_auto_payment`
 --
 
-LOCK TABLES `hjb_payment` WRITE;
-/*!40000 ALTER TABLE `hjb_payment` DISABLE KEYS */;
-INSERT INTO `hjb_payment` VALUES (901,'Credit',801,850.00,'2025-01-15'),(902,'PayPal',802,1200.50,'2025-02-20'),(903,'Check',803,980.00,'2024-06-10'),(904,'Debit',804,1100.00,'2025-03-25'),(905,'Credit',805,750.00,'2025-01-10'),(906,'PayPal',806,1350.25,'2024-12-20'),(907,'Check',807,890.00,'2025-04-05'),(908,'Debit',808,1050.00,'2025-03-10'),(909,'Credit',809,1150.00,'2024-09-20'),(910,'PayPal',810,920.75,'2025-02-01'),(911,'Check',811,1280.00,'2025-03-10'),(912,'Debit',812,990.00,'2025-02-20'),(913,'Credit',813,1100.50,'2024-11-10'),(914,'PayPal',814,870.00,'2025-05-20'),(915,'Check',815,1400.00,'2025-02-05'),(916,'Debit',816,2500.00,'2025-01-25'),(917,'Credit',817,3100.50,'2025-02-20'),(918,'PayPal',818,1800.00,'2024-06-01'),(919,'Check',819,4200.00,'2025-03-15'),(920,'Debit',820,2750.00,'2025-01-10'),(921,'Credit',821,3300.25,'2024-11-25'),(922,'PayPal',822,2900.00,'2025-04-20'),(923,'Check',823,3600.00,'2025-03-15'),(924,'Debit',824,2100.00,'2024-08-15'),(925,'Credit',825,4500.75,'2025-01-30'),(926,'PayPal',826,3800.00,'2025-03-25'),(927,'Check',827,3200.00,'2025-02-28'),(928,'Debit',828,2400.50,'2024-12-15'),(929,'Credit',829,4100.00,'2025-05-20'),(930,'PayPal',830,2950.00,'2025-02-10');
-/*!40000 ALTER TABLE `hjb_payment` ENABLE KEYS */;
+LOCK TABLES `hjb_auto_payment` WRITE;
+/*!40000 ALTER TABLE `hjb_auto_payment` DISABLE KEYS */;
+INSERT INTO `hjb_auto_payment` VALUES (901,'Credit',801,850.00,'2025-01-15'),(902,'PayPal',802,1200.50,'2025-02-20'),(903,'Check',803,980.00,'2024-06-10'),(904,'Debit',804,1100.00,'2025-03-25'),(905,'Credit',805,750.00,'2025-01-10'),(906,'PayPal',806,1350.25,'2024-12-20'),(907,'Check',807,890.00,'2025-04-05'),(908,'Debit',808,1050.00,'2025-03-10'),(909,'Credit',809,1150.00,'2024-09-20'),(910,'PayPal',810,920.75,'2025-02-01'),(911,'Check',811,1280.00,'2025-03-10'),(912,'Debit',812,990.00,'2025-02-20'),(913,'Credit',813,1100.50,'2024-11-10'),(914,'PayPal',814,870.00,'2025-05-20'),(915,'Check',815,1400.00,'2025-02-05');
+/*!40000 ALTER TABLE `hjb_auto_payment` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `hjb_vd`
+-- Table structure for table `hjb_home_payment`
+-- Payments for Home invoices only
 --
 
-DROP TABLE IF EXISTS `hjb_vd`;
+DROP TABLE IF EXISTS `hjb_home_payment`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `hjb_vd` (
-  `HJB_VEHICLE_VIN` varchar(17) NOT NULL COMMENT 'Foreign Key: Vehicle VIN',
-  `HJB_DRIVER_Driver_License` varchar(20) NOT NULL COMMENT 'Foreign Key: Driver License',
-  PRIMARY KEY (`HJB_VEHICLE_VIN`,`HJB_DRIVER_Driver_License`),
-  KEY `VD_DRIVER_FK` (`HJB_DRIVER_Driver_License`),
-  CONSTRAINT `VD_DRIVER_FK` FOREIGN KEY (`HJB_DRIVER_Driver_License`) REFERENCES `hjb_driver` (`Driver_License`),
-  CONSTRAINT `VD_VEHICLE_FK` FOREIGN KEY (`HJB_VEHICLE_VIN`) REFERENCES `hjb_vehicle` (`VIN`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `hjb_home_payment` (
+  `P_ID` int NOT NULL AUTO_INCREMENT COMMENT 'Home payment ID',
+  `Method` varchar(20) NOT NULL COMMENT 'Payment method: Check, Credit, Debit, PayPal',
+  `HJB_HOME_INVOICE_I_ID` int NOT NULL COMMENT 'Home invoice ID (mandatory)',
+  `Pay_Amount` decimal(10,2) NOT NULL COMMENT 'Payment amount',
+  `Pay_Date` date NOT NULL COMMENT 'Payment date',
+  PRIMARY KEY (`P_ID`),
+  KEY `HJB_HOME_PAYMENT_HJB_HOME_INVOICE_FK` (`HJB_HOME_INVOICE_I_ID`),
+  CONSTRAINT `HJB_HOME_PAYMENT_HJB_HOME_INVOICE_FK` FOREIGN KEY (`HJB_HOME_INVOICE_I_ID`) REFERENCES `hjb_home_invoice` (`I_ID`),
+  CONSTRAINT `Home_Pay_Amount_CK` CHECK ((`Pay_Amount` >= 0.01)),
+  CONSTRAINT `Home_Pay_Method_CK` CHECK ((`Method` in (_utf8mb4'Check',_utf8mb4'Credit',_utf8mb4'Debit',_utf8mb4'PayPal')))
+) ENGINE=InnoDB AUTO_INCREMENT=931 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `hjb_vd`
+-- Dumping data for table `hjb_home_payment`
 --
 
-LOCK TABLES `hjb_vd` WRITE;
-/*!40000 ALTER TABLE `hjb_vd` DISABLE KEYS */;
-INSERT INTO `hjb_vd` VALUES ('VIN10000000000001','LIC001'),('VIN10000000000002','LIC002'),('VIN10000000000003','LIC003'),('VIN10000000000004','LIC004'),('VIN10000000000005','LIC005'),('VIN10000000000006','LIC006'),('VIN10000000000007','LIC007'),('VIN10000000000008','LIC008'),('VIN10000000000009','LIC009'),('VIN10000000000010','LIC010'),('VIN10000000000011','LIC011'),('VIN10000000000012','LIC012'),('VIN10000000000013','LIC013'),('VIN10000000000014','LIC014'),('VIN10000000000015','LIC015'),('VIN10000000000016','LIC016'),('VIN10000000000017','LIC017'),('VIN10000000000018','LIC018'),('VIN10000000000019','LIC019'),('VIN10000000000020','LIC020'),('VIN10000000000021','LIC021'),('VIN10000000000022','LIC022'),('VIN10000000000023','LIC023'),('VIN10000000000024','LIC024'),('VIN10000000000025','LIC025'),('VIN10000000000026','LIC026'),('VIN10000000000027','LIC027'),('VIN10000000000028','LIC028'),('VIN10000000000029','LIC029'),('VIN10000000000030','LIC030');
-/*!40000 ALTER TABLE `hjb_vd` ENABLE KEYS */;
+LOCK TABLES `hjb_home_payment` WRITE;
+/*!40000 ALTER TABLE `hjb_home_payment` DISABLE KEYS */;
+INSERT INTO `hjb_home_payment` VALUES (916,'Debit',816,2500.00,'2025-01-25'),(917,'Credit',817,3100.50,'2025-02-20'),(918,'PayPal',818,1800.00,'2024-06-01'),(919,'Check',819,4200.00,'2025-03-15'),(920,'Debit',820,2750.00,'2025-01-10'),(921,'Credit',821,3300.25,'2024-11-25'),(922,'PayPal',822,2900.00,'2025-04-20'),(923,'Check',823,3600.00,'2025-03-15'),(924,'Debit',824,2100.00,'2024-08-15'),(925,'Credit',825,4500.75,'2025-01-30'),(926,'PayPal',826,3800.00,'2025-03-25'),(927,'Check',827,3200.00,'2025-02-28'),(928,'Debit',828,2400.50,'2024-12-15'),(929,'Credit',829,4100.00,'2025-05-20'),(930,'PayPal',830,2950.00,'2025-02-10');
+/*!40000 ALTER TABLE `hjb_home_payment` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `hjb_vehicle`
---
-
-DROP TABLE IF EXISTS `hjb_vehicle`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `hjb_vehicle` (
-  `VIN` varchar(17) NOT NULL COMMENT 'Vehicle identification number',
-  `MMY` varchar(50) NOT NULL COMMENT 'vehicle make-model-year',
-  `Status` char(1) NOT NULL COMMENT 'L:leased F: financed O:owned',
-  `HJB_AUTOPOLICY_AP_ID` int NOT NULL COMMENT 'Auto policy ID',
-  PRIMARY KEY (`VIN`),
-  KEY `HJB_VEHICLE_HJB_AUTOPOLICY_FK` (`HJB_AUTOPOLICY_AP_ID`),
-  CONSTRAINT `HJB_VEHICLE_HJB_AUTOPOLICY_FK` FOREIGN KEY (`HJB_AUTOPOLICY_AP_ID`) REFERENCES `hjb_autopolicy` (`AP_ID`),
-  CONSTRAINT `Vehicle_status_CK` CHECK ((`Status` in (_utf8mb4'F',_utf8mb4'L',_utf8mb4'O'))),
-  CONSTRAINT `VIN_Length_CK` CHECK ((char_length(`VIN`) = 17))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `hjb_vehicle`
---
-
-LOCK TABLES `hjb_vehicle` WRITE;
-/*!40000 ALTER TABLE `hjb_vehicle` DISABLE KEYS */;
-INSERT INTO `hjb_vehicle` VALUES ('VIN10000000000001','2022 Toyota Camry','O',101),('VIN10000000000002','2021 Honda Accord','F',102),('VIN10000000000003','2020 Ford F-150','O',103),('VIN10000000000004','2023 Tesla Model 3','L',104),('VIN10000000000005','2019 Chevrolet Malibu','O',105),('VIN10000000000006','2022 BMW X5','F',106),('VIN10000000000007','2021 Audi A4','L',107),('VIN10000000000008','2020 Nissan Altima','O',108),('VIN10000000000009','2023 Jeep Grand Cherokee','F',109),('VIN10000000000010','2022 Subaru Outback','O',110),('VIN10000000000011','2021 Mercedes-Benz C300','L',111),('VIN10000000000012','2018 Volkswagen Jetta','O',112),('VIN10000000000013','2022 Hyundai Tucson','F',113),('VIN10000000000014','2023 Kia Telluride','O',114),('VIN10000000000015','2021 Lexus RX 350','F',115),('VIN10000000000016','2020 Mazda CX-5','O',116),('VIN10000000000017','2022 Porsche Macan','L',117),('VIN10000000000018','2021 Dodge Ram 1500','O',118),('VIN10000000000019','2023 Rivian R1S','F',119),('VIN10000000000020','2022 Volvo XC90','L',120),('VIN10000000000021','2020 Chrysler 300','O',121),('VIN10000000000022','2021 Cadillac Escalade','F',122),('VIN10000000000023','2019 Buick Enclave','O',123),('VIN10000000000024','2022 GMC Sierra','L',124),('VIN10000000000025','2023 Acura MDX','O',125),('VIN10000000000026','2021 Infiniti Q50','F',126),('VIN10000000000027','2020 Lincoln Navigator','L',127),('VIN10000000000028','2022 Land Rover Defender','O',128),('VIN10000000000029','2023 Ford Mustang','F',129),('VIN10000000000030','2021 Toyota RAV4','O',130);
-/*!40000 ALTER TABLE `hjb_vehicle` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -317,4 +434,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-26 10:41:01
+-- Dump completed on 2026-04-26

@@ -252,10 +252,11 @@
         </el-form-item>
         <el-form-item label="Method">
           <el-select v-model="payForm.method" style="width:100%">
-            <el-option label="Credit Card" value="Credit" />
-            <el-option label="Debit Card" value="Debit" />
+            <el-option label="Credit Card" value="Credit Card" />
+            <el-option label="Debit Card" value="Debit Card" />
+            <el-option label="ACH" value="ACH" />
             <el-option label="Check" value="Check" />
-            <el-option label="PayPal" value="PayPal" />
+            <el-option label="Cash" value="Cash" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -386,7 +387,7 @@ onMounted(async () => {
 
 function openPayment(row) {
   payTarget.value = row
-  payForm.value = { invoiceId: row.iId, payAmount: outstanding.value, method: 'Credit' }
+  payForm.value = { type: row.policyType.toUpperCase(), invoiceId: row.iId, payAmount: outstanding.value, method: 'Credit Card' }
   payDialog.value = true
 }
 
