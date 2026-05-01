@@ -7,18 +7,6 @@ spring:
     username: ${DB_USER:root}
     password: ${DB_PASS}
     driver-class-name: com.mysql.cj.jdbc.Driver
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USER}
-    password: ${MAIL_PASS}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
@@ -26,4 +14,7 @@ mybatis:
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
+
+resend:
+  api-key: ${RESEND_API_KEY}
 
