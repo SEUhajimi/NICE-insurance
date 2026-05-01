@@ -30,4 +30,11 @@ public interface PaymentMapper {
             "SELECT P_ID, Method, HJB_HOME_INVOICE_I_ID AS HJB_INVOICE_I_ID, Pay_Amount, Pay_Date " +
             "FROM hjb_home_payment WHERE HJB_HOME_INVOICE_I_ID = #{invoiceId}")
     List<Payment> findByInvoiceId(Integer invoiceId);
+
+    @Select("SELECT P_ID, Method, HJB_AUTO_INVOICE_I_ID AS HJB_INVOICE_I_ID, Pay_Amount, Pay_Date " +
+            "FROM hjb_auto_payment WHERE Method = #{method} " +
+            "UNION ALL " +
+            "SELECT P_ID, Method, HJB_HOME_INVOICE_I_ID AS HJB_INVOICE_I_ID, Pay_Amount, Pay_Date " +
+            "FROM hjb_home_payment WHERE Method = #{method}")
+    List<Payment> searchByMethod(@Param("method") String method);
 }

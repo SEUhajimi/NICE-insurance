@@ -66,6 +66,7 @@ watch(route, () => {
 })
 
 const menuItems = [
+  { path: '/dashboard',       label: 'Dashboard',       icon: '📊' },
   { path: '/customers',      label: 'Customers',       icon: '👥' },
   { path: '/auto-policies',  label: 'Auto Policies',   icon: '🚗' },
   { path: '/home-policies',  label: 'Home Policies',   icon: '🏠' },

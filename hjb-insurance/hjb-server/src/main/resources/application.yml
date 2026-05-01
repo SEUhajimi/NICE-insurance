@@ -3,16 +3,26 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:3306/nice3?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://${DB_HOST:localhost}:3306/nice4?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
     username: ${DB_USER:root}
     password: ${DB_PASS}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USER}
+    password: ${MAIL_PASS:REDACTED_MAIL_PASS}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
 
 jwt:
-  # 生产环境通过 JWT_SECRET 环境变量注入，本地开发使用默认值
   secret: ${JWT_SECRET}
-  expiration: 86400000  # 24小时（毫秒）
+  expiration: 86400000

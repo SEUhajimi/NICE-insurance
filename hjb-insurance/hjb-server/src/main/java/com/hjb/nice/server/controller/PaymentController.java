@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@Tag(name = "管理端 - Payment管理", description = "Payment的增删改查（需 EMPLOYEE Token）")
+@Tag(name = "Admin - Payment Management", description = "CRUD operations for Payment (requires EMPLOYEE Token)")
 @SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/api/payments")
@@ -22,6 +22,12 @@ public class PaymentController {
     @GetMapping
     public Result<List<Payment>> findAll() {
         return Result.success(paymentService.findAll());
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "Search payments by method (server-side)")
+    public Result<List<Payment>> searchByMethod(@RequestParam String method) {
+        return Result.success(paymentService.searchByMethod(method));
     }
 
     @GetMapping("/{id}")

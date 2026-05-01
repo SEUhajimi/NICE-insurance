@@ -29,7 +29,7 @@ public interface CustomerMapper {
     @Update("UPDATE hjb_customer SET Cust_Type=#{custType} WHERE CUST_ID=#{custId}")
     void updateCustType(@Param("custId") Integer custId, @Param("custType") String custType);
 
-    // 注册时使用，依赖数据库 AUTO_INCREMENT 生成 CUST_ID
+    // Used during registration; relies on the database AUTO_INCREMENT to generate CUST_ID
     @Insert("INSERT INTO hjb_customer(FNAME, LNAME, Gender, Marital_status, Cust_Type, Addr_Street, Addr_City, Addr_State, Zipcode) " +
             "VALUES(#{fname}, #{lname}, #{gender}, #{maritalStatus}, #{custType}, #{addrStreet}, #{addrCity}, #{addrState}, #{zipcode})")
     @Options(useGeneratedKeys = true, keyProperty = "custId")

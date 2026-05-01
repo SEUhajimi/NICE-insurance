@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@Tag(name = "管理端 - 车辆管理", description = "Vehicle的增删改查（需 EMPLOYEE Token）")
+@Tag(name = "Admin - Vehicle Management", description = "CRUD operations for Vehicle (requires EMPLOYEE Token)")
 @SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/api/vehicles")

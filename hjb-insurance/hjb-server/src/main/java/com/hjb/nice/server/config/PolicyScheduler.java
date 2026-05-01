@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 
 /**
- * 每天凌晨 1 点检查过期保单，将 Status 从 'C' 更新为 'T'
+ * Runs daily at 1:00 AM to check for expired policies and update their Status from 'C' to 'E'.
  */
 @Component
 public class PolicyScheduler {
@@ -27,7 +27,7 @@ public class PolicyScheduler {
         int auto = autoPolicyMapper.updateExpired(today);
         int home = homePolicyMapper.updateExpired(today);
         if (auto + home > 0) {
-            log.info("过期保单处理完成：车险 {} 张，房险 {} 张", auto, home);
+            log.info("Expired policy update complete: {} auto policies, {} home policies updated.", auto, home);
         }
     }
 }

@@ -20,10 +20,10 @@ public class JwtUtil {
     private long expiration;
 
     /**
-     * 生成 JWT Token
+     * Generate a JWT Token.
      *
-     * @param username 用户名
-     * @param role     角色（EMPLOYEE / CUSTOMER）
+     * @param username the username
+     * @param role     the role (EMPLOYEE / CUSTOMER)
      */
     public String generateToken(String username, String role) {
         return Jwts.builder()

@@ -256,7 +256,6 @@
             <el-option label="Debit Card" value="Debit Card" />
             <el-option label="ACH" value="ACH" />
             <el-option label="Check" value="Check" />
-            <el-option label="Cash" value="Cash" />
           </el-select>
         </el-form-item>
       </el-form>

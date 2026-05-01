@@ -11,8 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 /**
- * 应用启动时自动创建默认 admin 账号（若不存在）。
- * 密码优先从环境变量 ADMIN_PASSWORD 读取，未设置时使用默认值（仅开发环境）。
+ * Automatically creates the default admin account on application startup (if it does not exist).
+ * The password is read from the ADMIN_PASSWORD environment variable; falls back to a default value for development only.
  */
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -39,7 +39,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setLname("User");
             admin.setRole("EMPLOYEE");
             employeeMapper.insert(admin);
-            log.warn("默认管理员账号已创建，请通过环境变量 ADMIN_PASSWORD 设置安全密码");
+            log.warn("Default admin account created. Please set a secure password via the ADMIN_PASSWORD environment variable.");
         }
     }
 }

@@ -5,13 +5,15 @@
       <el-button type="primary" @click="openAdd">+ Add Payment</el-button>
     </div>
 
-    <div style="margin-bottom:16px">
-      <el-input v-model="search" placeholder="Search by Invoice ID or method..." clearable style="width:320px">
+    <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
+      <el-input v-model="search" placeholder="Search by payment method..." clearable style="width:320px"
+        @input="handleSearch" @clear="handleClear">
         <template #prefix><el-icon><Search /></el-icon></template>
       </el-input>
+      <el-tag type="danger" v-if="search">Server-side query active</el-tag>
     </div>
 
-    <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
+    <el-table :data="pagedData" stripe style="width: 100%" v-loading="loading">
       <el-table-column prop="pId" label="Payment ID" width="110" />
       <el-table-column prop="hjbInvoiceIId" label="Invoice ID" width="100" />
       <el-table-column prop="method" label="Method" width="100">
@@ -30,6 +32,12 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <div class="pagination-bar">
+      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50]" :total="tableData.length"
+        layout="total, sizes, prev, pager, next" background />
+    </div>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? 'Edit Payment' : 'Add Payment'" width="500">
       <el-form :model="form" label-width="120px">
@@ -71,14 +79,28 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const search = ref('')
 
-const filteredData = computed(() => {
-  const q = search.value.toLowerCase()
-  if (!q) return tableData.value
-  return tableData.value.filter(r =>
-    String(r.hjbInvoiceIId || '').includes(q) ||
-    (r.method || '').toLowerCase().includes(q)
-  )
-})
+const currentPage = ref(1)
+const pageSize    = ref(10)
+const pagedData   = computed(() =>
+  tableData.value.slice((currentPage.value - 1) * pageSize.value, currentPage.value * pageSize.value)
+)
+
+// Server-side search — sends the raw input to the backend (vulnerable to SQL injection when backend uses ${})
+async function handleSearch() {
+  if (!search.value.trim()) { return loadData() }
+  loading.value = true
+  try {
+    const res = await paymentApi.search(search.value)
+    tableData.value = res.data ?? []
+    currentPage.value = 1
+  } catch {
+    tableData.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+function handleClear() { loadData() }
 
 const defaultForm = { pId: null, hjbInvoiceIId: null, method: 'Credit', payAmount: 0, payDate: '' }
 const form = ref({ ...defaultForm })
@@ -111,4 +133,5 @@ onMounted(loadData)
 .page { max-width: 1200px; }
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .page-title { font-size: 28px; font-weight: 700; }
+.pagination-bar { display: flex; justify-content: flex-end; margin-top: 16px; }
 </style>

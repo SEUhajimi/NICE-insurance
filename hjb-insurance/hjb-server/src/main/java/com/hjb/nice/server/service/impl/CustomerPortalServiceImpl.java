@@ -33,7 +33,7 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
 
     private CustomerAccount getAccount(String username) {
         CustomerAccount account = customerAccountMapper.findByUsername(username);
-        if (account == null) throw new NotFoundException("账号信息不存在");
+        if (account == null) throw new NotFoundException("Account not found");
         return account;
     }
 
@@ -62,10 +62,10 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
     @Transactional(rollbackFor = Exception.class)
     public void purchasePolicy(String username, PurchaseRequest req) {
         if (!"AUTO".equals(req.getType()) && !"HOME".equals(req.getType())) {
-            throw new ValidationException("保险类型无效，必须为 AUTO 或 HOME");
+            throw new ValidationException("Invalid policy type; must be AUTO or HOME");
         }
         if (req.getAmount() == null || req.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ValidationException("保险金额必须大于 0");
+            throw new ValidationException("Policy amount must be greater than 0");
         }
 
         CustomerAccount account = getAccount(username);
@@ -76,7 +76,7 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
             customer.setLname(account.getLname());
             customer.setGender(account.getGender());
             customer.setMaritalStatus(account.getMaritalStatus());
-            customer.setCustType(null);
+            customer.setCustType("AUTO".equals(req.getType()) ? "A" : "H");
             customer.setAddrStreet(account.getAddrStreet());
             customer.setAddrCity(account.getAddrCity());
             customer.setAddrState(account.getAddrState());
@@ -96,8 +96,7 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
             policy.setAmount(req.getAmount());
             policy.setStatus(PolicyStatus.CURRENT.getCode());
             policy.setHjbCustomerCustId(custId);
-            autoPolicyMapper.insertPolicy(policy);
-            autoPolicyMapper.insertSubtype(policy);
+            autoPolicyMapper.insert(policy);
 
             AutoInvoice invoice = new AutoInvoice();
             invoice.setIDate(today);
@@ -112,8 +111,7 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
             policy.setAmount(req.getAmount());
             policy.setStatus(PolicyStatus.CURRENT.getCode());
             policy.setHjbCustomerCustId(custId);
-            homePolicyMapper.insertPolicy(policy);
-            homePolicyMapper.insertSubtype(policy);
+            homePolicyMapper.insert(policy);
 
             HomeInvoice invoice = new HomeInvoice();
             invoice.setIDate(today);
@@ -184,29 +182,29 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
     @Transactional(isolation = Isolation.REPEATABLE_READ, rollbackFor = Exception.class)
     public void makePayment(String username, PaymentRequest req) {
         if (req.getPayAmount() == null || req.getPayAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ValidationException("支付金额必须大于 0");
+            throw new ValidationException("Payment amount must be greater than 0");
         }
         if (req.getPayAmount().scale() > 2) {
-            throw new ValidationException("支付金额最多保留两位小数");
+            throw new ValidationException("Payment amount may have at most two decimal places");
         }
 
         String type = req.getType();
         if (!"AUTO".equals(type) && !"HOME".equals(type)) {
-            throw new ValidationException("账单类型无效，必须为 AUTO 或 HOME");
+            throw new ValidationException("Invalid invoice type; must be AUTO or HOME");
         }
 
         if ("AUTO".equals(type)) {
             AutoInvoice invoice = autoInvoiceMapper.findById(req.getInvoiceId());
-            if (invoice == null) throw new NotFoundException("Auto Invoice 不存在");
+            if (invoice == null) throw new NotFoundException("Auto Invoice not found");
             if (!autoInvoiceBelongsToUser(invoice, username)) {
-                throw new UnauthorizedException("无权操作该账单");
+                throw new UnauthorizedException("You are not authorized to operate on this invoice");
             }
             BigDecimal paid = autoPaymentMapper.findByInvoiceId(req.getInvoiceId()).stream()
                     .map(AutoPayment::getPayAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-            if (paid.compareTo(invoice.getAmount()) >= 0) throw new ValidationException("该账单已全额支付");
+            if (paid.compareTo(invoice.getAmount()) >= 0) throw new ValidationException("This invoice has already been paid in full");
             BigDecimal remaining = invoice.getAmount().subtract(paid);
             if (req.getPayAmount().compareTo(remaining) > 0) {
-                throw new ValidationException("支付金额不能超过剩余应付金额 " + remaining);
+                throw new ValidationException("Payment amount cannot exceed the remaining balance of " + remaining);
             }
             AutoPayment payment = new AutoPayment();
             payment.setHjbAutoInvoiceIId(req.getInvoiceId());
@@ -216,16 +214,16 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
             autoPaymentMapper.insertAutoId(payment);
         } else {
             HomeInvoice invoice = homeInvoiceMapper.findById(req.getInvoiceId());
-            if (invoice == null) throw new NotFoundException("Home Invoice 不存在");
+            if (invoice == null) throw new NotFoundException("Home Invoice not found");
             if (!homeInvoiceBelongsToUser(invoice, username)) {
-                throw new UnauthorizedException("无权操作该账单");
+                throw new UnauthorizedException("You are not authorized to operate on this invoice");
             }
             BigDecimal paid = homePaymentMapper.findByInvoiceId(req.getInvoiceId()).stream()
                     .map(HomePayment::getPayAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-            if (paid.compareTo(invoice.getAmount()) >= 0) throw new ValidationException("该账单已全额支付");
+            if (paid.compareTo(invoice.getAmount()) >= 0) throw new ValidationException("This invoice has already been paid in full");
             BigDecimal remaining = invoice.getAmount().subtract(paid);
             if (req.getPayAmount().compareTo(remaining) > 0) {
-                throw new ValidationException("支付金额不能超过剩余应付金额 " + remaining);
+                throw new ValidationException("Payment amount cannot exceed the remaining balance of " + remaining);
             }
             HomePayment payment = new HomePayment();
             payment.setHjbHomeInvoiceIId(req.getInvoiceId());

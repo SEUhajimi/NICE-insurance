@@ -5,7 +5,7 @@
       <el-button type="primary" @click="openAdd">+ Add Plan</el-button>
     </div>
 
-    <el-table :data="tableData" stripe style="width: 100%" v-loading="loading">
+    <el-table :data="pagedData" stripe style="width: 100%" v-loading="loading">
       <el-table-column prop="planId" label="ID" width="60" />
       <el-table-column label="Type" width="100">
         <template #default="{ row }">
@@ -46,6 +46,12 @@
       </el-table-column>
     </el-table>
 
+    <div class="pagination-bar">
+      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50]" :total="tableData.length"
+        layout="total, sizes, prev, pager, next" background />
+    </div>
+
     <el-dialog v-model="dialogVisible" :title="isEdit ? 'Edit Plan' : 'Add Plan'" width="540">
       <el-form :model="form" label-width="130px">
         <el-form-item label="Policy Type">
@@ -84,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { planApi } from '../api'
 
@@ -92,6 +98,10 @@ const tableData = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
+
+const currentPage = ref(1)
+const pageSize    = ref(10)
+const pagedData   = computed(() => tableData.value.slice((currentPage.value-1)*pageSize.value, currentPage.value*pageSize.value))
 
 const defaultForm = { planId: null, planType: 'AUTO', planName: '', amount: 800, features: '', isActive: true }
 const form = ref({ ...defaultForm })
@@ -156,4 +166,5 @@ onMounted(loadData)
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .page-title { font-size: 28px; font-weight: 700; }
 .feature-chips { display: flex; flex-wrap: wrap; }
+.pagination-bar { display: flex; justify-content: flex-end; margin-top: 16px; }
 </style>

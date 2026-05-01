@@ -5,6 +5,7 @@ import java.util.List;
 
 public interface PaymentService {
     List<Payment> findAll();
+    List<Payment> searchByMethod(String method);
     Payment findById(Integer pId);
     void add(Payment payment);
     void update(Payment payment);

@@ -11,7 +11,7 @@
       </el-input>
     </div>
 
-    <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
+    <el-table :data="pagedData" stripe style="width: 100%" v-loading="loading">
       <el-table-column prop="custId" label="ID" width="70" />
       <el-table-column prop="fname" label="First Name" />
       <el-table-column prop="lname" label="Last Name" />
@@ -37,6 +37,12 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <div class="pagination-bar">
+      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50]" :total="filteredData.length"
+        layout="total, sizes, prev, pager, next" background />
+    </div>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? 'Edit Customer' : 'Add Customer'" width="600">
       <el-form :model="form" label-width="130px">
@@ -90,7 +96,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import { customerApi } from '../api'
@@ -119,6 +125,14 @@ const filteredData = computed(() => {
   )
 })
 
+const currentPage = ref(1)
+const pageSize    = ref(10)
+const pagedData   = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return filteredData.value.slice(start, start + pageSize.value)
+})
+watch(search, () => { currentPage.value = 1 })
+
 const defaultForm = {
   fname: '', lname: '', gender: 'M',
   maritalStatus: 'S', custType: 'A', addrStreet: '',
@@ -146,6 +160,14 @@ const openEdit = (row) => {
 }
 
 const handleSubmit = async () => {
+  if (!form.value.fname?.trim()) {
+    ElMessage.error('First name is required')
+    return
+  }
+  if (!form.value.lname?.trim()) {
+    ElMessage.error('Last name is required')
+    return
+  }
   if (isEdit.value) {
     await customerApi.update(form.value)
     ElMessage.success('Updated successfully')
@@ -177,4 +199,5 @@ onMounted(loadData)
 }
 .page-title { font-size: 28px; font-weight: 700; color: var(--text); }
 .search-bar { margin-bottom: 16px; }
+.pagination-bar { display: flex; justify-content: flex-end; margin-top: 16px; }
 </style>

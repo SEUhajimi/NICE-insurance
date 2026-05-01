@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@Tag(name = "管理端 - Invoice管理", description = "Invoice的增删改查（需 EMPLOYEE Token）")
+@Tag(name = "Admin - Invoice Management", description = "CRUD operations for Invoice (requires EMPLOYEE Token)")
 @SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/api/invoices")

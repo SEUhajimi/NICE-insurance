@@ -11,6 +11,6 @@ public class Employee {
     private String email;
     private String fname;
     private String lname;
-    private String role;         // EMPLOYEE 或 ADMIN
+    private String role;         // EMPLOYEE or ADMIN
     private LocalDateTime createdAt;
 }

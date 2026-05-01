@@ -20,7 +20,7 @@ request.interceptors.request.use(config => {
 request.interceptors.response.use(
   response => {
     const data = response.data
-    // 业务层错误（code: 0）统一弹出提示
+    // Business-layer error (code: 0): show error message
     if (data && data.code === 0 && data.msg) {
       ElMessage.error(data.msg)
       return Promise.reject(new Error(data.msg))
@@ -32,14 +32,14 @@ request.interceptors.response.use(
       localStorage.removeItem('token')
       localStorage.removeItem('username')
       router.push('/login')
-      ElMessage.warning('登录已过期，请重新登录')
+      ElMessage.warning('Session expired, please log in again')
       return Promise.reject(error)
     }
     if (error.response?.status === 403) {
-      ElMessage.error('无权限执行该操作')
+      ElMessage.error('You do not have permission to perform this action')
       return Promise.reject(error)
     }
-    const msg = error.response?.data?.msg || '网络请求失败，请稍后重试'
+    const msg = error.response?.data?.msg || 'Network request failed, please try again later'
     ElMessage.error(msg)
     return Promise.reject(error)
   }

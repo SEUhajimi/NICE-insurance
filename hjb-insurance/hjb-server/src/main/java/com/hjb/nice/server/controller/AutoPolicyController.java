@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@Tag(name = "管理端 - 汽车保单管理", description = "AutoPolicy的增删改查（需 EMPLOYEE Token）")
+@Tag(name = "Admin - Auto Policy Management", description = "CRUD operations for AutoPolicy (requires EMPLOYEE Token)")
 @SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/api/auto-policies")

@@ -27,11 +27,10 @@ public class HomePolicyServiceImpl implements HomePolicyService {
     @Transactional
     public void add(HomePolicy homePolicy) {
         if (homePolicy.getHpId() != null) {
-            homePolicyMapper.insertPolicyWithId(homePolicy);
+            homePolicyMapper.insertWithId(homePolicy);
         } else {
-            homePolicyMapper.insertPolicy(homePolicy);
+            homePolicyMapper.insert(homePolicy);
         }
-        homePolicyMapper.insertSubtype(homePolicy);
     }
 
     @Override
@@ -40,8 +39,5 @@ public class HomePolicyServiceImpl implements HomePolicyService {
 
     @Override
     @Transactional
-    public void deleteById(Integer hpId) {
-        homePolicyMapper.deleteSubtype(hpId);
-        homePolicyMapper.deletePolicy(hpId);
-    }
+    public void deleteById(Integer hpId) { homePolicyMapper.deleteById(hpId); }
 }

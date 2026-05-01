@@ -6,11 +6,11 @@ import java.time.LocalDateTime;
 @Data
 public class CustomerAccount {
     private Integer accountId;
-    private Integer customerId;     // 关联 hjb_customer.CUST_ID，下单前为 null
+    private Integer customerId;     // FK to hjb_customer.CUST_ID; null until first policy purchase
     private String username;
     private String password;
     private String email;
-    // 个人信息（注册时填写，下单时同步到 hjb_customer）
+    // Personal information (collected at registration; synced to hjb_customer on first purchase)
     private String fname;
     private String lname;
     private String gender;

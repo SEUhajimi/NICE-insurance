@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "管理端 - 员工管理", description = "员工账号的增删查（需 EMPLOYEE Token）")
+@Tag(name = "Admin - Employee Management", description = "Create, retrieve, and delete employee accounts (requires EMPLOYEE Token)")
 @SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/api/admin/employees")
@@ -26,20 +26,20 @@ public class AdminController {
     private PasswordEncoder passwordEncoder;
 
 
-    @Operation(summary = "查询所有员工")
+    @Operation(summary = "Get all employees")
     @GetMapping
     public Result<List<Employee>> findAll() {
         List<Employee> employees = employeeMapper.findAll();
-        // 不返回密码字段
+        // Do not return the password field
         employees.forEach(e -> e.setPassword(null));
         return Result.success(employees);
     }
 
-    @Operation(summary = "新增员工账号")
+    @Operation(summary = "Create a new employee account")
     @PostMapping
     public Result<Void> addEmployee(@RequestBody Employee employee) {
         if (employeeMapper.findByUsername(employee.getUsername()) != null) {
-            return Result.error("用户名已存在");
+            return Result.error("Username already exists");
         }
         employee.setPassword(passwordEncoder.encode(employee.getPassword()));
         if (employee.getRole() == null) {
@@ -49,7 +49,7 @@ public class AdminController {
         return Result.success();
     }
 
-    @Operation(summary = "删除员工账号")
+    @Operation(summary = "Delete an employee account")
     @DeleteMapping("/{id}")
     public Result<Void> deleteEmployee(@PathVariable Integer id) {
         employeeMapper.deleteById(id);

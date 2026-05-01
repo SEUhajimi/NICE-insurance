@@ -7,11 +7,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "管理端 - 客户管理", description = "客户信息的增删改查（需 EMPLOYEE Token）")
+@Tag(name = "Admin - Customer Management", description = "CRUD operations for customer information (requires EMPLOYEE Token)")
 @SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/api/customers")
@@ -20,33 +21,33 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
-    @Operation(summary = "查询所有客户")
+    @Operation(summary = "Get all customers")
     @GetMapping
     public Result<List<Customer>> findAll() {
         return Result.success(customerService.findAll());
     }
 
-    @Operation(summary = "根据ID查询客户")
+    @Operation(summary = "Get customer by ID")
     @GetMapping("/{id}")
     public Result<Customer> findById(@PathVariable("id") Integer id) {
         return Result.success(customerService.findById(id));
     }
 
-    @Operation(summary = "新增客户")
+    @Operation(summary = "Create a new customer")
     @PostMapping
-    public Result<Void> add(@RequestBody Customer customer) {
+    public Result<Void> add(@Validated @RequestBody Customer customer) {
         customerService.add(customer);
         return Result.success();
     }
 
-    @Operation(summary = "修改客户信息")
+    @Operation(summary = "Update customer information")
     @PutMapping
-    public Result<Void> update(@RequestBody Customer customer) {
+    public Result<Void> update(@Validated @RequestBody Customer customer) {
         customerService.update(customer);
         return Result.success();
     }
 
-    @Operation(summary = "删除客户")
+    @Operation(summary = "Delete a customer")
     @DeleteMapping("/{id}")
     public Result<Void> deleteById(@PathVariable("id") Integer id) {
         customerService.deleteById(id);

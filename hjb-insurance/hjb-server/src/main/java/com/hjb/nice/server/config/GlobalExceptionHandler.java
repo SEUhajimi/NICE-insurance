@@ -4,6 +4,7 @@ import com.hjb.nice.result.Result;
 import com.hjb.nice.server.exception.NotFoundException;
 import com.hjb.nice.server.exception.UnauthorizedException;
 import com.hjb.nice.server.exception.ValidationException;
+import org.springframework.dao.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -47,6 +48,13 @@ public class GlobalExceptionHandler {
         return Result.error(message);
     }
 
+    @ExceptionHandler(DataAccessException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Void> handleDataAccess(DataAccessException e) {
+        Throwable cause = e.getCause() != null ? e.getCause() : e;
+        return Result.error("SQL Error: " + cause.getMessage());
+    }
+
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Void> handleRuntimeException(RuntimeException e) {
@@ -56,7 +64,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result<Void> handleException(Exception e) {
-        log.error("未处理的异常", e);
-        return Result.error("服务器内部错误，请稍后重试");
+        log.error("Unhandled exception", e);
+        return Result.error("Internal server error. Please try again later.");
     }
 }

@@ -27,11 +27,10 @@ public class AutoPolicyServiceImpl implements AutoPolicyService {
     @Transactional
     public void add(AutoPolicy autoPolicy) {
         if (autoPolicy.getApId() != null) {
-            autoPolicyMapper.insertPolicyWithId(autoPolicy);
+            autoPolicyMapper.insertWithId(autoPolicy);
         } else {
-            autoPolicyMapper.insertPolicy(autoPolicy);
+            autoPolicyMapper.insert(autoPolicy);
         }
-        autoPolicyMapper.insertSubtype(autoPolicy);
     }
 
     @Override
@@ -40,8 +39,5 @@ public class AutoPolicyServiceImpl implements AutoPolicyService {
 
     @Override
     @Transactional
-    public void deleteById(Integer apId) {
-        autoPolicyMapper.deleteSubtype(apId);
-        autoPolicyMapper.deletePolicy(apId);
-    }
+    public void deleteById(Integer apId) { autoPolicyMapper.deleteById(apId); }
 }

@@ -4,6 +4,7 @@ import com.hjb.nice.dto.CustomerRegisterRequest;
 import com.hjb.nice.dto.LoginRequest;
 import com.hjb.nice.dto.LoginResponse;
 import com.hjb.nice.dto.ResetPasswordRequest;
+import com.hjb.nice.dto.SendOtpRequest;
 import com.hjb.nice.result.Result;
 import com.hjb.nice.server.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,7 +13,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "认证", description = "登录与注册（无需 Token）")
+@Tag(name = "Authentication", description = "Login and registration endpoints (no Token required)")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -20,26 +21,33 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @Operation(summary = "员工登录", description = "返回 JWT Token，角色为 EMPLOYEE")
+    @Operation(summary = "Employee login", description = "Returns a JWT Token with role EMPLOYEE")
     @PostMapping("/employee/login")
     public Result<LoginResponse> employeeLogin(@RequestBody LoginRequest request) {
         return Result.success(authService.employeeLogin(request));
     }
 
-    @Operation(summary = "客户登录", description = "返回 JWT Token，角色为 CUSTOMER")
+    @Operation(summary = "Customer login", description = "Returns a JWT Token with role CUSTOMER")
     @PostMapping("/customer/login")
     public Result<LoginResponse> customerLogin(@RequestBody LoginRequest request) {
         return Result.success(authService.customerLogin(request));
     }
 
-    @Operation(summary = "客户注册", description = "同时创建 Customer 记录和账号")
+    @Operation(summary = "Customer registration", description = "Creates both a Customer record and a portal account")
     @PostMapping("/customer/register")
     public Result<Void> customerRegister(@Valid @RequestBody CustomerRegisterRequest request) {
         authService.customerRegister(request);
         return Result.success();
     }
 
-    @Operation(summary = "客户找回密码", description = "验证用户名和邮箱，重置密码")
+    @Operation(summary = "Send password reset code", description = "Validates username and email, then sends a 6-digit OTP to the email address")
+    @PostMapping("/customer/send-otp")
+    public Result<Void> sendOtp(@Valid @RequestBody SendOtpRequest request) {
+        authService.sendResetOtp(request);
+        return Result.success();
+    }
+
+    @Operation(summary = "Customer password reset", description = "Resets the password after verifying the OTP")
     @PostMapping("/customer/reset-password")
     public Result<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request);

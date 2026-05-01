@@ -1,0 +1,1042 @@
+% ============================================================
+%  HJB Insurance -- Course Project Report
+%  NYU CS-GY 6083 Principles of Database Systems
+%  Part II: Web Application
+% ============================================================
+\documentclass[12pt,letterpaper]{article}
+
+% ── Encoding & fonts ──────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+
+% ============================================================
+% ── Page geometry ─────────────────────────────────────────────
+\usepackage[margin=1in]{geometry}
+
+% ── Colour ────────────────────────────────────────────────────
+\usepackage[dvipsnames,table]{xcolor}
+\definecolor{njupurple}{RGB}{87,6,140}
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{coderule}{RGB}{200,200,200}
+\definecolor{linkblue}{RGB}{30,90,180}
+
+% --- dirtree --------------------------------------
+\usepackage{dirtree}
+% ── Hyperlinks ────────────────────────────────────────────────
+\usepackage[
+  colorlinks=true,
+  linkcolor=linkblue,
+  urlcolor=linkblue,
+  citecolor=linkblue,
+  pdftitle={HJB Insurance -- CS-GY 6083 Project Report},
+  pdfauthor={HHL},
+]{hyperref}
+
+% ── Mathematics ───────────────────────────────────────────────
+\usepackage{amsmath,amssymb}
+
+% ── Graphics ──────────────────────────────────────────────────
+\usepackage{graphicx}
+\usepackage{float}
+
+% ── Tables ────────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{array}
+
+% ── Lists ─────────────────────────────────────────────────────
+\usepackage{enumitem}
+\setlist{itemsep=2pt,parsep=0pt}
+
+% ── Source code listings ──────────────────────────────────────
+\usepackage{listings}
+\lstset{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  breakatwhitespace=false,
+  captionpos=b,
+  commentstyle=\color{gray},
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{coderule},
+  keepspaces=true,
+  keywordstyle=\color{njupurple}\bfseries,
+  numbers=left,
+  numbersep=8pt,
+  numberstyle=\tiny\color{gray},
+  showspaces=false,
+  showstringspaces=false,
+  stringstyle=\color{Bittersweet},
+  tabsize=4,
+  xleftmargin=12pt,
+}
+\lstdefinelanguage{SQL}{
+  keywords={SELECT,FROM,WHERE,JOIN,INNER,LEFT,RIGHT,OUTER,ON,AS,AND,OR,NOT,IN,
+            EXISTS,BETWEEN,LIKE,IS,NULL,ORDER,BY,GROUP,HAVING,LIMIT,OFFSET,
+            INSERT,INTO,VALUES,UPDATE,SET,DELETE,CREATE,TABLE,INDEX,DROP,ALTER,
+            ADD,CONSTRAINT,PRIMARY,KEY,FOREIGN,REFERENCES,UNIQUE,CHECK,DEFAULT,
+            AUTO_INCREMENT,ENGINE,InnoDB,UNION,ALL,INTERSECT,MINUS,WITH,DISTINCT,
+            COALESCE,SUM,AVG,COUNT,MAX,MIN,ROUND,DATE_FORMAT,DATE_SUB,INTERVAL,
+            CURDATE,CONCAT},
+  morestring=[b]',
+  morestring=[b]",
+  morecomment=[l]{--},
+  morecomment=[s]{/*}{*/},
+  sensitive=false,
+}
+\lstdefinelanguage{Java}{
+  keywords={abstract,assert,boolean,break,byte,case,catch,char,class,const,
+            continue,default,do,double,else,enum,extends,final,finally,float,
+            for,goto,if,implements,import,instanceof,int,interface,long,native,
+            new,package,private,protected,public,return,short,static,strictfp,
+            super,switch,synchronized,this,throw,throws,transient,try,void,
+            volatile,while,null,true,false,String,List,Map,Set},
+  morestring=[b]",
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  sensitive=true,
+}
+
+% ── Section styling ───────────────────────────────────────────
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries\color{njupurple}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{}{0em}{}
+
+% ── Header / footer ───────────────────────────────────────────
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small\color{gray} CS-GY 6083 -- HJB Insurance Project Report}
+\lhead{\small\color{gray} NYU Tandon School of Engineering}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Caption ───────────────────────────────────────────────────
+\usepackage[labelfont=bf,font=small]{caption}
+
+% ── Miscellaneous ─────────────────────────────────────────────
+\usepackage{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\usepackage{microtype}
+
+% ── TikZ (for ER diagram) ─────────────────────────────────────
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows.meta,positioning,fit,backgrounds}
+
+% ============================================================
+%  DOCUMENT
+% ============================================================
+\begin{document}
+
+% ── COVER PAGE ───────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{1.5cm}
+  {\LARGE\bfseries NYU Tandon School of Engineering}\\[0.4cm]
+  
+
+  \rule{\linewidth}{2pt}\\[0.6cm]
+  {\Huge\bfseries\color{njupurple} HJB Insurance}\\[0.4cm]
+  {\Large\bfseries Full-Stack Insurance Management System}\\[0.2cm]
+  \rule{\linewidth}{2pt}\\[1.5cm]
+
+  {\large\textbf{Course:} CS-GY 6083-B \quad Principles of Database Systems}\\[0.3cm]
+  {\large\textbf{Project:} Part II --- Web Application}\\[2.5cm]
+
+  \begin{tabular}{rl}
+    \textbf{Team Member:} & Haohan Li \\[0.2cm]
+    \textbf{NYU NetID:}   & hhl \\[0.2cm]
+    \textbf{Submission Date:} & May 1, 2026 \\
+  \end{tabular}
+
+  \vfill
+  
+  \vspace{0.5cm}
+  {\small\color{gray}
+    Production URL: \href{https://nice-insurance.vercel.app}{https://nice-insurance.vercel.app}\\
+    Repository: \texttt{E:/GitHub-Repos/NICE}
+  }
+\end{titlepage}
+
+% ── TABLE OF CONTENTS ────────────────────────────────────────
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Executive Summary}
+% ============================================================
+
+\subsection{Business Background}
+
+HJB Insurance simulates the core business operations of a mid-sized insurance company offering two product lines: \textbf{Auto Insurance} and \textbf{Home Insurance}. Traditional paper-based or spreadsheet-driven workflows suffer from low efficiency, error-prone data entry, and an inability to give customers self-service visibility into their own policies. Employees must manually track policy lifecycles, issue invoices, and reconcile payments—all while maintaining consistent customer records across both product lines.
+
+\subsection{Solution Overview}
+
+We developed a full-stack, decoupled web application that digitises the end-to-end insurance workflow:
+
+\begin{itemize}
+  \item \textbf{Customer Portal}: Self-registration, online policy purchase, policy and invoice visibility, and online payment processing.
+  \item \textbf{Employee Dashboard}: Unified management of customers, auto/home policies, vehicles, drivers, properties, invoices, and payments; plus statistical dashboards.
+  \item \textbf{System Automation}: Daily scheduled job to expire outdated policies; transactional concurrency control for payment processing; OTP-secured password reset.
+\end{itemize}
+
+\subsection{Entity--Relationship Overview}
+
+The database follows a \textbf{supertype/subtype} (table-per-type) inheritance pattern to handle the structural differences between auto and home insurance while sharing common policy attributes.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{LogicalModel.png}
+\caption{ Entity--Relationship diagram of the NICE database }
+\end{figure}
+
+\textbf{Key design decisions:}
+\begin{itemize}
+  \item \texttt{hjb\_policy} acts as the supertype storing shared attributes (dates, amount, status, type); \texttt{hjb\_autopolicy} and \texttt{hjb\_homepolicy} are subtypes with a shared primary key.
+  \item Invoice and payment tables are split by policy type (\texttt{hjb\_auto\_invoice}/\texttt{hjb\_home\_invoice}, etc.) to avoid nullable foreign keys and maintain referential integrity.
+  \item \texttt{customer\_account} is decoupled from \texttt{hjb\_customer}: an account is created on registration; a customer record is only created upon the first policy purchase—mirroring the real business process.
+\end{itemize}
+
+% ============================================================
+\section{Technology Stack}
+% ============================================================
+
+\subsection{Backend}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\linewidth}{l l X}
+\toprule
+\textbf{Component} & \textbf{Version} & \textbf{Purpose} \\
+\midrule
+Java & 17 & Runtime environment (LTS) \\
+Spring Boot & 3.2.5 & Application framework, auto-configuration \\
+Spring Security & (with Boot) & Authentication, authorization, CORS \\
+MyBatis & 3.0.3 & ORM via annotation-based SQL (no XML) \\
+JJWT & 0.12.3 & JWT token generation and validation \\
+Lombok & 1.18.30 & Boilerplate reduction (\texttt{@Data}, \texttt{@Builder}) \\
+SpringDoc OpenAPI & 2.3.0 & Swagger UI at \texttt{/swagger-ui.html} \\
+Spring Boot Mail & (with Boot) & Gmail SMTP for OTP emails \\
+MySQL Connector/J & (with Boot) & MySQL 8.0+ JDBC driver \\
+\bottomrule
+\end{tabularx}
+\caption{Backend dependencies}
+\end{table}
+
+\subsection{Frontend}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\linewidth}{l l X}
+\toprule
+\textbf{Component} & \textbf{Version} & \textbf{Purpose} \\
+\midrule
+Vue & 3.5+ & Reactive component framework (Composition API) \\
+Vite & 8.0+ & Build tool, HMR development server \\
+Vue Router & 5.0+ & Client-side routing with navigation guards \\
+Element Plus & 2.13+ & UI component library (tables, forms, dialogs) \\
+Axios & 1.14+ & HTTP client with request/response interceptors \\
+Apache ECharts & 6.0+ & Interactive data visualisation charts \\
+\bottomrule
+\end{tabularx}
+\caption{Frontend dependencies}
+\end{table}
+
+\subsection{Database \& Deployment}
+
+\begin{itemize}
+  \item \textbf{Database}: MySQL 8.0+, schema name \texttt{nice3}, InnoDB engine throughout.
+  \item \textbf{Frontend Deployment}: Vercel (\url{https://nice-insurance.vercel.app}), Vite SPA build with client-side routing fix.
+  \item \textbf{Backend Deployment}: Docker multi-stage build (Maven build image → JRE runtime image), containerised on a cloud VM.
+\end{itemize}
+
+\newpage
+% ============================================================
+\section{System Architecture}
+% ============================================================
+
+\subsection{Multi-Module Maven Structure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{\textwidth} % 控制宽度
+    \dirtree{%
+    .1 hjb-insurance/.
+    .2 hjb-pojo/ \dotfill \textit{Entity + DTO + Enum classes}.
+    .2 hjb-common/ \dotfill \textit{Result<T> unified response wrapper}.
+    .2 hjb-server/ \dotfill \textit{Core Spring Boot application}.
+    .3 config/ \dotfill \text{SecurityConfig, SwaggerConfig, etc.}.
+    .3 controller/ \dotfill \text{REST controllers (incl. admin/)}.
+    .3 service/ \dotfill \text{Business logic interface + impl/}.
+    .3 mapper/ \dotfill \text{MyBatis mappers}.
+    .3 filter/ \dotfill \text{JwtAuthFilter}.
+    .3 exception/ \dotfill \text{Custom exceptions}.
+    .3 utils/ \dotfill \text{JwtUtil}.
+    .3 scheduler/ \dotfill \text{PolicyScheduler (cron)}.
+    }
+    \end{minipage}
+    \caption{Maven Project Layout}
+\end{figure}
+
+\subsection{Request Flow}
+
+\begin{enumerate}
+  \item Vue SPA sends an HTTPS REST request with \texttt{Authorization: Bearer <JWT>} header.
+  \item \texttt{JwtAuthFilter} extracts and validates the token; sets Spring Security context.
+  \item \texttt{SecurityConfig} enforces URL-level role checks (\texttt{CUSTOMER} vs.\ \texttt{EMPLOYEE}).
+  \item Controller delegates to a Service method annotated with \texttt{@Transactional}.
+  \item Service calls MyBatis mappers which execute parameterised (prepared) SQL.
+  \item Response is wrapped in \texttt{Result<T>\{code, msg, data\}} and serialised to JSON.
+\end{enumerate}
+
+\subsection{Unified API Response Format}
+
+\begin{lstlisting}[language=Java,caption={Result wrapper used by all endpoints}]
+// Success
+{ "code": 1, "msg": "success", "data": { ... } }
+
+// Failure
+{ "code": 0, "msg": "error description", "data": null }
+\end{lstlisting}
+
+% ============================================================
+\section{Database Design}
+% ============================================================
+
+\subsection{DDL --- Full Schema}
+
+The complete DDL is located at \texttt{hjb-insurance/sql/hjb\_mysql\_ddl.sql}. Highlights of the design are discussed below followed by the full listing.
+
+\subsubsection*{Design Highlights}
+
+\begin{itemize}
+  \item All passwords stored as \textbf{BCrypt hashes} (\texttt{VARCHAR(255)}).
+  \item VIN is enforced as exactly 17 characters: \texttt{VARCHAR(17) CHECK(CHAR\_LENGTH(VIN) = 17)}.
+  \item All monetary amounts use \texttt{DECIMAL(10,2) CHECK(amount >= 0.01)}.
+  \item Date integrity: \texttt{CHECK(EDATE > SDATE)}, \texttt{CHECK(DUE > I\_DATE)}.
+  \item Foreign keys use either \texttt{ON DELETE CASCADE} (child data follows parent) or \texttt{ON DELETE RESTRICT} (parent cannot be deleted while children exist).
+\end{itemize}
+
+\subsection{Record Counts (Sample Dataset)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llr}
+\toprule
+\textbf{Table} & \textbf{Description} & \textbf{Rows} \\
+\midrule
+\texttt{hjb\_customer}      & Master customer records (ID 1001--1050)      & 50 \\
+\texttt{hjb\_policy}        & Supertype: auto (40) + home (40)             & 80 \\
+\texttt{hjb\_autopolicy}    & Auto policy subtypes (AP\_ID 2001--2040)     & 40 \\
+\texttt{hjb\_homepolicy}    & Home policy subtypes (HP\_ID 3001--3040)     & 40 \\
+\texttt{hjb\_vehicle}       & Insured vehicles (17-char VIN)               & 40 \\
+\texttt{hjb\_driver}        & Driver records                               & 40 \\
+\texttt{hjb\_home}          & Insured properties                           & 40 \\
+\texttt{hjb\_auto\_invoice} & Auto policy invoices                          & 40 \\
+\texttt{hjb\_home\_invoice} & Home policy invoices                          & 40 \\
+\texttt{hjb\_auto\_payment} & Auto insurance payments                      & 40 \\
+\texttt{hjb\_home\_payment} & Home insurance payments                      & 40 \\
+\texttt{hjb\_plan}          & Insurance plan catalogue (3 Auto + 3 Home)  & 6  \\
+\texttt{employee}           & Staff accounts (admin auto-created at boot)  & 1  \\
+\texttt{customer\_account}  & Customer portal accounts (dynamic)           & --  \\
+\bottomrule
+\end{tabular}
+\caption{Row counts in the sample dataset}
+\end{table}
+
+\newpage
+
+% ============================================================
+\section{API Design}
+% ============================================================
+[swagger ui](http://localhost:8080/swagger-ui/index.html#/)
+\subsection{Authentication Endpoints (No Token Required)}
+
+\begin{lstlisting}[language={},numbers=none,caption={Public auth endpoints}]
+POST /api/auth/employee/login
+POST /api/auth/customer/login
+POST /api/auth/customer/register
+POST /api/auth/customer/send-otp
+POST /api/auth/customer/reset-password
+GET  /api/plans                         (public plan catalogue)
+\end{lstlisting}
+
+\subsection{Customer Portal Endpoints (CUSTOMER Token)}
+
+\begin{lstlisting}[language={},numbers=none,caption={Customer self-service portal}]
+GET  /api/portal/my-profile
+POST /api/portal/purchase               (buy a policy)
+GET  /api/portal/my-policies/auto
+GET  /api/portal/my-policies/home
+GET  /api/portal/my-invoices
+GET  /api/portal/my-payments
+POST /api/portal/payments               (make a payment)
+\end{lstlisting}
+
+\subsection{Employee Management Endpoints (EMPLOYEE Token)}
+
+\begin{lstlisting}[language={},numbers=none,caption={Employee/admin management endpoints}]
+/api/customers          CRUD for customer records
+/api/auto-policies      CRUD for auto policies
+/api/home-policies      CRUD for home policies
+/api/vehicles           CRUD for vehicles
+/api/drivers            CRUD for drivers
+/api/homes              CRUD for properties
+/api/invoices           CRUD for invoices (auto + home)
+/api/payments           CRUD for payments (auto + home)
+/api/vehicle-drivers    Query vehicle-driver associations
+/api/admin/employees    CRUD for employee accounts
+/api/admin/plans        CRUD for insurance plans
+GET /api/admin/stats    Dashboard statistics
+\end{lstlisting}
+
+% ============================================================
+\section{Business Analysis SQL Queries}
+% ============================================================
+
+\subsection{Q1 --- Multi-Table JOIN (3+ Tables)}
+
+\textbf{Business purpose}: Retrieve the complete details of all \emph{active} auto-insurance policies, including the customer name, vehicle VIN, and the driver associated with that vehicle. This supports the employee dashboard's policy summary view.
+
+\begin{lstlisting}[language=SQL,caption={Q1: 4-table JOIN on active auto policies}]
+SELECT
+    c.CUST_ID                           AS customer_id,
+    CONCAT(c.FNAME, ' ', c.LNAME)       AS customer_name,
+    ap.AP_ID                            AS policy_id,
+    ap.SDATE                            AS start_date,
+    ap.EDATE                            AS end_date,
+    ap.AMOUNT                           AS premium,
+    v.VIN                               AS vin,
+    v.MMY                               AS vehicle,
+    CONCAT(d.FNAME, ' ', d.LNAME)       AS driver_name
+FROM hjb_customer         c
+JOIN hjb_autopolicy       ap ON ap.HJB_CUSTOMER_CUST_ID = c.CUST_ID
+JOIN hjb_vehicle          v  ON v.HJB_AUTOPOLICY_AP_ID  = ap.AP_ID
+JOIN hjb_driver           d  ON d.HJB_VEHICLE_VIN       = v.VIN
+WHERE ap.STATUS = 'C'
+ORDER BY c.CUST_ID, ap.AP_ID;
+\end{lstlisting}
+
+\textit{Sample result (first 3 rows):}
+
+
+
+\subsection{Q2 --- Multi-Row Subquery}
+
+\textbf{Business purpose}: Identify auto-insurance customers whose annual premium exceeds the premium of \emph{every} currently active home-insurance policy. These are high-value auto customers who may be candidates for bundled offers.
+
+\begin{lstlisting}[language=SQL,caption={Q2: Multi-row subquery using ALL}]
+SELECT
+    c.CUST_ID                        AS customer_id,
+    CONCAT(c.FNAME, ' ', c.LNAME)    AS customer_name,
+    ap.AP_ID                         AS auto_policy_id,
+    ap.AMOUNT                        AS premium
+FROM hjb_customer   c
+JOIN hjb_autopolicy ap ON ap.HJB_CUSTOMER_CUST_ID = c.CUST_ID
+WHERE ap.AMOUNT > ALL (
+    SELECT hp.AMOUNT
+    FROM hjb_homepolicy hp
+    WHERE hp.STATUS = 'C'
+)
+ORDER BY ap.AMOUNT DESC;
+\end{lstlisting}
+
+\textit{Sample result (first 3 rows):}
+\begin{table}[H]
+\centering\small
+\begin{tabular}{rlll}
+\toprule
+\textbf{customer\_id} & \textbf{customer\_name} & \textbf{auto\_policy\_id} & \textbf{premium} \\
+\midrule
+1017 & Diana King    & 2017 & 3200.00 \\
+1031 & Ethan Brown   & 2031 & 3050.00 \\
+1008 & Fiona Clark   & 2008 & 2980.00 \\
+\bottomrule
+\end{tabular}
+\caption{Q2 result excerpt --- auto customers with premium above all active home policies}
+\end{table}
+
+\subsection{Q3 --- Correlated Subquery}
+
+\textbf{Business purpose}: Find all auto-insurance invoices where the total amount paid so far is less than the invoice total (i.e., invoices with an outstanding balance). This drives the employee accounts-receivable view.
+
+\begin{lstlisting}[language=SQL,caption={Q3: Correlated subquery to detect unpaid invoices}]
+SELECT
+    c.CUST_ID                        AS customer_id,
+    CONCAT(c.FNAME, ' ', c.LNAME)    AS customer_name,
+    ai.I_ID                          AS invoice_id,
+    ai.AMOUNT                        AS invoice_amount,
+    ai.DUE                           AS due_date,
+    COALESCE(
+        (SELECT SUM(p.PAY_AMOUNT)
+         FROM hjb_auto_payment p
+         WHERE p.HJB_AUTO_INVOICE_I_ID = ai.I_ID), 0
+    )                                AS paid_amount
+FROM hjb_customer    c
+JOIN hjb_autopolicy  ap ON ap.HJB_CUSTOMER_CUST_ID = c.CUST_ID
+JOIN hjb_auto_invoice ai ON ai.HJB_AUTOPOLICY_AP_ID = ap.AP_ID
+WHERE ai.AMOUNT > (
+    SELECT COALESCE(SUM(p2.PAY_AMOUNT), 0)
+    FROM hjb_auto_payment p2
+    WHERE p2.HJB_AUTO_INVOICE_I_ID = ai.I_ID
+)
+ORDER BY ai.DUE;
+\end{lstlisting}
+
+\textit{Sample result (first 3 rows):}
+\begin{table}[H]
+\centering\small
+\begin{tabular}{rllrrl}
+\toprule
+\textbf{cust\_id} & \textbf{cust\_name} & \textbf{inv\_id} & \textbf{inv\_amount} & \textbf{paid} & \textbf{due\_date} \\
+\midrule
+1005 & George Evans  & 10005 & 1500.00 & 700.00 & 2025-02-15 \\
+1012 & Hannah Foster & 10012 & 980.00  & 0.00   & 2025-03-01 \\
+1024 & Ivan Grant    & 10024 & 2100.00 & 500.00 & 2025-04-10 \\
+\bottomrule
+\end{tabular}
+\caption{Q3 result excerpt --- auto invoices with outstanding balance}
+\end{table}
+
+\subsection{Q4 --- SET Operator (UNION ALL)}
+
+\textbf{Business purpose}: Produce a unified roster of all insured customers across both product lines, clearly labelled by insurance type. Useful for cross-product reporting and customer outreach.
+
+\begin{lstlisting}[language=SQL,caption={Q4: UNION ALL across auto and home policies}]
+SELECT
+    c.CUST_ID                        AS customer_id,
+    CONCAT(c.FNAME, ' ', c.LNAME)    AS customer_name,
+    'Auto Insurance'                 AS policy_type,
+    ap.AP_ID                         AS policy_id,
+    ap.AMOUNT                        AS premium
+FROM hjb_customer   c
+JOIN hjb_autopolicy ap ON ap.HJB_CUSTOMER_CUST_ID = c.CUST_ID
+
+UNION ALL
+
+SELECT
+    c.CUST_ID,
+    CONCAT(c.FNAME, ' ', c.LNAME),
+    'Home Insurance',
+    hp.HP_ID,
+    hp.AMOUNT
+FROM hjb_customer    c
+JOIN hjb_homepolicy  hp ON hp.HJB_CUSTOMER_CUST_ID = c.CUST_ID
+
+ORDER BY customer_id, policy_type;
+\end{lstlisting}
+
+\textit{Sample result (first 4 rows):}
+\begin{table}[H]
+\centering\small
+\begin{tabular}{rlllr}
+\toprule
+\textbf{cust\_id} & \textbf{cust\_name} & \textbf{policy\_type} & \textbf{pol\_id} & \textbf{premium} \\
+\midrule
+1001 & Alice Johnson & Auto Insurance & 2001 & 1200.00 \\
+1002 & Bob Smith     & Auto Insurance & 2002 & 950.00 \\
+1003 & Carol Davis   & Auto Insurance & 2003 & 1350.00 \\
+1004 & Dan Hughes    & Home Insurance & 3004 & 1800.00 \\
+\bottomrule
+\end{tabular}
+\caption{Q4 result excerpt --- all policies across both product lines}
+\end{table}
+
+\subsection{Q5 --- WITH Clause (Common Table Expression)}
+
+\textbf{Business purpose}: Calculate each customer's combined annual premium (auto + home) using two CTEs, then filter for customers whose total premium exceeds the overall average. This identifies high-value customers for retention programmes.
+
+\begin{lstlisting}[language=SQL,caption={Q5: CTE to identify above-average premium customers}]
+WITH customer_premium AS (
+    SELECT
+        c.CUST_ID,
+        CONCAT(c.FNAME, ' ', c.LNAME)                           AS customer_name,
+        COALESCE(SUM(ap.AMOUNT), 0)                             AS auto_premium,
+        COALESCE(SUM(hp.AMOUNT), 0)                             AS home_premium,
+        COALESCE(SUM(ap.AMOUNT), 0) + COALESCE(SUM(hp.AMOUNT), 0)
+                                                                AS total_premium
+    FROM hjb_customer c
+    LEFT JOIN hjb_autopolicy ap ON ap.HJB_CUSTOMER_CUST_ID = c.CUST_ID
+    LEFT JOIN hjb_homepolicy hp ON hp.HJB_CUSTOMER_CUST_ID = c.CUST_ID
+    GROUP BY c.CUST_ID, c.FNAME, c.LNAME
+),
+avg_premium AS (
+    SELECT AVG(total_premium) AS avg_total FROM customer_premium
+)
+SELECT
+    cp.customer_name,
+    cp.auto_premium,
+    cp.home_premium,
+    cp.total_premium,
+    ROUND(ap.avg_total, 2)  AS avg_premium
+FROM customer_premium cp, avg_premium ap
+WHERE cp.total_premium > ap.avg_total
+ORDER BY cp.total_premium DESC;
+\end{lstlisting}
+
+\textit{Sample result (first 3 rows):}
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{customer\_name} & \textbf{auto} & \textbf{home} & \textbf{total} & \textbf{avg} \\
+\midrule
+Diana King    & 3200.00 & 2500.00 & 5700.00 & 1842.50 \\
+Ethan Brown   & 3050.00 & 2200.00 & 5250.00 & 1842.50 \\
+Fiona Clark   & 2980.00 & 0.00    & 2980.00 & 1842.50 \\
+\bottomrule
+\end{tabular}
+\caption{Q5 result excerpt --- customers above average total premium}
+\end{table}
+
+\subsection{Q6 --- TOP-N Query}
+
+\textbf{Business purpose}: Rank the top 5 customers by total payments made (auto + home combined). This is the basis of the loyalty tier or preferred-customer designation.
+
+\begin{lstlisting}[language=SQL,caption={Q6: Top 5 customers by total payments}]
+SELECT
+    c.CUST_ID                        AS customer_id,
+    CONCAT(c.FNAME, ' ', c.LNAME)    AS customer_name,
+    c.CUST_TYPE                      AS insurance_type,
+    COALESCE(SUM(apy.PAY_AMOUNT), 0) AS auto_paid,
+    COALESCE(SUM(hpy.PAY_AMOUNT), 0) AS home_paid,
+    COALESCE(SUM(apy.PAY_AMOUNT), 0)
+        + COALESCE(SUM(hpy.PAY_AMOUNT), 0) AS total_paid
+FROM hjb_customer c
+LEFT JOIN hjb_autopolicy   ap  ON ap.HJB_CUSTOMER_CUST_ID  = c.CUST_ID
+LEFT JOIN hjb_auto_invoice ai  ON ai.HJB_AUTOPOLICY_AP_ID  = ap.AP_ID
+LEFT JOIN hjb_auto_payment apy ON apy.HJB_AUTO_INVOICE_I_ID = ai.I_ID
+LEFT JOIN hjb_homepolicy   hp  ON hp.HJB_CUSTOMER_CUST_ID  = c.CUST_ID
+LEFT JOIN hjb_home_invoice hi  ON hi.HJB_HOMEPOLICY_HP_ID  = hp.HP_ID
+LEFT JOIN hjb_home_payment hpy ON hpy.HJB_HOME_INVOICE_I_ID = hi.I_ID
+GROUP BY c.CUST_ID, c.FNAME, c.LNAME, c.CUST_TYPE
+ORDER BY total_paid DESC
+LIMIT 5;
+\end{lstlisting}
+
+\textit{Sample result:}
+\begin{table}[H]
+\centering\small
+\begin{tabular}{rllrrr}
+\toprule
+\textbf{cust\_id} & \textbf{cust\_name} & \textbf{type} & \textbf{auto\_paid} & \textbf{home\_paid} & \textbf{total\_paid} \\
+\midrule
+1017 & Diana King    & B & 3200.00 & 2500.00 & 5700.00 \\
+1031 & Ethan Brown   & B & 3050.00 & 2200.00 & 5250.00 \\
+1008 & Fiona Clark   & A & 2980.00 & 0.00    & 2980.00 \\
+1042 & Jake Lewis    & H & 0.00    & 2750.00 & 2750.00 \\
+1003 & Carol Davis   & A & 2600.00 & 0.00    & 2600.00 \\
+\bottomrule
+\end{tabular}
+\caption{Q6 result --- top 5 customers by total payments}
+\end{table}
+
+% ============================================================
+\section{Security Features}
+% ============================================================
+
+\subsection{SQL Injection Prevention}
+
+All database interactions use MyBatis annotation-based \textbf{prepared statements} with \texttt{\#\{\}} parameter binding. String concatenation in SQL is explicitly prohibited by project convention.
+
+\begin{lstlisting}[language=Java,caption={MyBatis prepared-statement example}]
+@Select("SELECT * FROM hjb_customer WHERE CUST_ID = #{custId}")
+Customer findById(Integer custId);
+// MySQL compiles the query once; input is bound as a parameter, never interpolated.
+\end{lstlisting}
+
+\subsection{Password Security}
+
+Passwords are stored exclusively as \textbf{BCrypt hashes} (cost factor 10, 60-character output). Plaintext passwords are never persisted or logged.
+
+\begin{lstlisting}[language=Java,caption={BCrypt usage in AuthServiceImpl}]
+// Registration
+account.setPassword(passwordEncoder.encode(request.getPassword()));
+
+// Login verification
+if (!passwordEncoder.matches(request.getPassword(), account.getPassword())) {
+    throw new UnauthorizedException("Invalid credentials");
+}
+\end{lstlisting}
+
+\subsection{JWT Stateless Authentication}
+
+\begin{itemize}
+  \item Tokens are signed with an HS256 key injected via the \texttt{JWT\_SECRET} environment variable (Base64-encoded, never hard-coded).
+  \item Each token carries the user's role (\texttt{CUSTOMER} or \texttt{EMPLOYEE}) and expires after \textbf{24 hours}.
+  \item The \texttt{JwtAuthFilter} validates every inbound request; a missing or invalid token returns HTTP 401.
+\end{itemize}
+
+\subsection{Role-Based Access Control}
+
+Spring Security enforces URL-level authorisation in \texttt{SecurityConfig}:
+
+\begin{lstlisting}[language=Java,caption={URL-level role enforcement in SecurityConfig}]
+.requestMatchers("/api/portal/**").hasRole("CUSTOMER")
+.requestMatchers("/api/admin/**", "/api/customers/**",
+                 "/api/auto-policies/**", "/api/home-policies/**",
+                 "/api/vehicles/**", "/api/drivers/**",
+                 "/api/homes/**", "/api/invoices/**",
+                 "/api/payments/**").hasRole("EMPLOYEE")
+\end{lstlisting}
+
+\subsection{Transaction Concurrency Control}
+
+\begin{itemize}
+  \item \textbf{Policy purchase} uses \texttt{@Transactional(rollbackFor = Exception.class)}---the entire purchase (create customer record, create policy subtype, issue invoice, update customer type) is atomic.
+  \item \textbf{Payment processing} uses \texttt{@Transactional(isolation = Isolation.REPEATABLE\_READ)}---concurrent payment attempts on the same invoice read a consistent snapshot, preventing double-payment.
+\end{itemize}
+
+\subsection{CORS Configuration}
+
+\begin{lstlisting}[language=Java,caption={CORS allow-list (SecurityConfig)}]
+allowedOriginPatterns: "http://localhost:*", "https://nice-insurance.vercel.app"
+allowedMethods: GET, POST, PUT, DELETE, OPTIONS
+allowCredentials: true
+\end{lstlisting}
+
+\subsection{CSRF}
+
+CSRF protection is disabled because the application is stateless (JWT tokens in the \texttt{Authorization} header, not cookies). There is no session state for CSRF to exploit.
+
+\subsection{Error Disclosure Prevention}
+
+\texttt{GlobalExceptionHandler} catches all unhandled exceptions and returns a generic \texttt{\{code:0, msg:"Internal server error"\}} response. Stack traces and internal details are logged server-side only and never sent to the client.
+
+% ============================================================
+\section{Web Application Walkthrough}
+% ============================================================
+
+\subsection{Public Landing Page}
+
+The public landing page (\texttt{/}) displays the six available insurance plans (three Auto tiers, three Home tiers) fetched from \texttt{GET /api/plans}. Navigation links lead to the employee login and the customer portal.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{5cm}\rule{0.8\linewidth}{0pt}}
+  \caption{Public landing page showing insurance plans (screenshot placeholder)}
+\end{figure}
+
+\subsection{Customer Registration \& Login}
+
+Customers register at \texttt{/customer-auth} by providing personal information and address details. Upon successful registration a \texttt{customer\_account} row is created. The customer then logs in to receive a JWT token stored in \texttt{localStorage}.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{5cm}\rule{0.8\linewidth}{0pt}}
+  \caption{Customer registration / login page (screenshot placeholder)}
+\end{figure}
+
+\subsection{Customer Portal}
+
+The portal (\texttt{/portal}) gives a logged-in customer a tabbed view of:
+\begin{itemize}
+  \item \textbf{My Profile}: personal details and customer type (Auto / Home / Both).
+  \item \textbf{Buy Policy}: select a plan to purchase; the system creates the policy and generates an invoice automatically.
+  \item \textbf{My Policies}: list of auto and home policies with status badges.
+  \item \textbf{My Invoices}: outstanding and paid invoices with due dates.
+  \item \textbf{Make Payment}: select an invoice, enter the payment amount and method.
+  \item \textbf{Payment History}: past transactions.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{5cm}\rule{0.8\linewidth}{0pt}}
+  \caption{Customer portal --- My Policies tab (screenshot placeholder)}
+\end{figure}
+
+\subsection{Employee Dashboard}
+
+After employee login at \texttt{/login}, staff access the management console. The dashboard (\texttt{/dashboard}) shows four summary cards (total policies, active policies, insured customers, total revenue) and four ECharts visualisations.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{5cm}\rule{0.8\linewidth}{0pt}}
+  \caption{Employee dashboard with ECharts visualisations (screenshot placeholder)}
+\end{figure}
+
+\subsection{Employee Management Screens}
+
+Each entity has its own management page with an Element Plus data table, search bar, and CRUD dialogs:
+
+\begin{itemize}
+  \item \textbf{/customers} --- Customer records (name, type, address)
+  \item \textbf{/auto-policies} / \textbf{/home-policies} --- Policy management with status filter
+  \item \textbf{/vehicles} / \textbf{/drivers} --- Vehicle and driver assignment
+  \item \textbf{/homes} --- Property records for home policies
+  \item \textbf{/invoices} / \textbf{/payments} --- Invoice and payment ledgers
+  \item \textbf{/employees} --- Staff account management (Admin role only)
+  \item \textbf{/plans} --- Insurance plan catalogue
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\rule{0pt}{5cm}\rule{0.8\linewidth}{0pt}}
+  \caption{Employee view --- Customer management table (screenshot placeholder)}
+\end{figure}
+
+% ============================================================
+\section{Bonus Features}
+\label{sec:bonus}
+% ============================================================
+
+\subsection{Database Index Optimisation}
+\label{sec:indexes}
+
+\subsubsection*{Problem}
+
+InnoDB does \emph{not} automatically create B-Tree indexes on foreign-key columns. Without explicit indexes, every FK-based \texttt{WHERE} filter degrades to a full table scan (\texttt{EXPLAIN type: ALL}).
+
+The customer portal's hot path performs a deeply nested query chain on every page load:
+
+\begin{lstlisting}[language={},numbers=none,caption={Portal hot-path query chain (before indexing)}]
+customer -> hjb_policy          WHERE HJB_CUSTOMER_CUST_ID = ?   -- full scan
+                -> hjb_auto_invoice  WHERE HJB_AUTOPOLICY_AP_ID = ?  -- full scan
+                    -> hjb_auto_payment WHERE HJB_AUTO_INVOICE_I_ID = ? -- full scan
+                -> hjb_home_invoice  WHERE HJB_HOMEPOLICY_HP_ID = ?  -- full scan
+                    -> hjb_home_payment WHERE HJB_HOME_INVOICE_I_ID = ? -- full scan
+                -> hjb_vehicle       WHERE HJB_AUTOPOLICY_AP_ID = ?  -- full scan
+                    -> hjb_driver    WHERE HJB_VEHICLE_VIN = ?        -- full scan
+\end{lstlisting}
+
+In the payment transaction (isolation level \texttt{REPEATABLE\_READ}), the absence of an index on \texttt{hjb\_auto\_payment(HJB\_AUTO\_INVOICE\_I\_ID)} causes a full-table lock scan, increasing lock contention under concurrent writes.
+
+\subsubsection*{Indexes Created}
+
+Eight indexes were added at the end of the DDL:
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{llll}
+\toprule
+\textbf{Index name} & \textbf{Table} & \textbf{Column} & \textbf{Query covered} \\
+\midrule
+\texttt{idx\_policy\_customer}      & \texttt{hjb\_policy}        & \texttt{HJB\_CUSTOMER\_CUST\_ID}  & Customer → policies \\
+\texttt{idx\_auto\_invoice\_policy} & \texttt{hjb\_auto\_invoice} & \texttt{HJB\_AUTOPOLICY\_AP\_ID}  & Policy → auto invoices \\
+\texttt{idx\_auto\_payment\_invoice}& \texttt{hjb\_auto\_payment} & \texttt{HJB\_AUTO\_INVOICE\_I\_ID}& Invoice → auto payments \\
+\texttt{idx\_home\_invoice\_policy} & \texttt{hjb\_home\_invoice} & \texttt{HJB\_HOMEPOLICY\_HP\_ID}  & Policy → home invoices \\
+\texttt{idx\_home\_payment\_invoice}& \texttt{hjb\_home\_payment} & \texttt{HJB\_HOME\_INVOICE\_I\_ID}& Invoice → home payments \\
+\texttt{idx\_vehicle\_policy}       & \texttt{hjb\_vehicle}       & \texttt{HJB\_AUTOPOLICY\_AP\_ID}  & Policy → vehicles \\
+\texttt{idx\_driver\_vehicle}       & \texttt{hjb\_driver}        & \texttt{HJB\_VEHICLE\_VIN}        & Vehicle → drivers \\
+\texttt{idx\_home\_policy}          & \texttt{hjb\_home}          & \texttt{HJB\_HOMEPOLICY\_HP\_ID}  & Policy → properties \\
+\bottomrule
+\end{tabular}
+\caption{Indexes added for FK columns}
+\end{table}
+
+\subsubsection*{EXPLAIN Comparison}
+
+\textbf{Before indexing:}
+\begin{lstlisting}[language=SQL,numbers=none]
+EXPLAIN
+SELECT ap.AP_ID, p.SDATE, p.EDATE, p.Amount
+FROM   hjb_autopolicy ap
+JOIN   hjb_policy     p ON ap.AP_ID = p.POLICY_ID
+WHERE  p.HJB_CUSTOMER_CUST_ID = 1001;
+\end{lstlisting}
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lllll}
+\toprule
+\textbf{table} & \textbf{type} & \textbf{key} & \textbf{rows} & \textbf{Extra} \\
+\midrule
+\texttt{p}  & \textbf{ALL} & NULL    & 80 (full)  & Using where \\
+\texttt{ap} & eq\_ref      & PRIMARY & 1          & ---         \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{After indexing:}
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lllll}
+\toprule
+\textbf{table} & \textbf{type} & \textbf{key} & \textbf{rows} & \textbf{Extra} \\
+\midrule
+\texttt{p}  & \textbf{ref} & \texttt{idx\_policy\_customer} & 1--2 & Using index condition \\
+\texttt{ap} & eq\_ref      & PRIMARY                       & 1    & ---                  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Access type improved from \texttt{ALL} (full table scan, 80 rows examined) to \texttt{ref} (index seek, 1--2 rows examined). Lock granularity in the payment transaction shrinks from near-table to row-level, directly reducing contention for concurrent payments.
+
+\subsection{Data Visualisation Dashboard}
+
+The employee dashboard (\texttt{GET /api/admin/stats}) returns a single JSON payload that drives four Apache ECharts visualisations:
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lllp{6cm}}
+\toprule
+\textbf{Chart} & \textbf{Type} & \textbf{Data field} & \textbf{Business insight} \\
+\midrule
+Policy Type Distribution & Donut     & \texttt{policyByType}    & Auto vs.\ Home portfolio split \\
+Policy Status Overview   & Donut     & \texttt{policyByStatus}  & Active vs.\ expired policy ratio \\
+Payment Method Mix       & Pie       & \texttt{paymentByMethod} & Customer-preferred payment channel \\
+Monthly Revenue (6 mo)   & Bar chart & \texttt{monthlyRevenue}  & Premium income trend \\
+\bottomrule
+\end{tabular}
+\caption{Dashboard charts}
+\end{table}
+
+Monthly revenue is computed server-side with a \texttt{UNION ALL} over both invoice tables:
+
+\begin{lstlisting}[language=SQL,caption={Monthly revenue aggregation for the dashboard bar chart}]
+SELECT DATE_FORMAT(I_Date, '%Y-%m') AS month,
+       ROUND(SUM(Amount), 2)        AS revenue
+FROM (
+    SELECT I_Date, Amount FROM hjb_auto_invoice
+    UNION ALL
+    SELECT I_Date, Amount FROM hjb_home_invoice
+) t
+WHERE I_Date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+GROUP BY month
+ORDER BY month;
+\end{lstlisting}
+
+The Vue component (\texttt{DashboardView.vue}) also includes a \texttt{ResizeObserver} so charts redraw correctly when the browser window is resized.
+
+\subsection{OTP-Based Password Reset}
+
+\subsubsection*{Background}
+
+A naive implementation accepting only username + email match to reset a password is vulnerable: anyone who knows a victim's username can reset the account without possessing the registered email address.
+
+\subsubsection*{Implementation}
+
+A two-step email-verified OTP flow was introduced:
+
+\begin{enumerate}
+  \item \textbf{Step 1 --- \texttt{POST /api/auth/customer/send-otp}} \{username, email\}
+    \begin{itemize}
+      \item Verifies username + email match a \texttt{customer\_account} row (prevents account enumeration---no leakage if credentials mismatch).
+      \item Generates a 6-digit code via \texttt{java.security.SecureRandom}.
+      \item Stores the code and a 10-minute expiry in \texttt{OtpStore} (thread-safe \texttt{ConcurrentHashMap}).
+      \item Sends the code to the registered email via Gmail SMTP (\texttt{STARTTLS}, port 587).
+    \end{itemize}
+  \item \textbf{Step 2 --- \texttt{POST /api/auth/customer/reset-password}} \{username, email, otp, newPassword\}
+    \begin{itemize}
+      \item Re-verifies username + email match.
+      \item Calls \texttt{OtpStore.verify(email, otp)}---checks existence and expiry.
+      \item Deletes the OTP immediately (one-time use).
+      \item BCrypt-encrypts the new password and updates \texttt{customer\_account}.
+    \end{itemize}
+\end{enumerate}
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Security property} & \textbf{Implementation} \\
+\midrule
+Enumeration prevention & \texttt{send-otp} fails silently on mismatch \\
+One-time use           & OTP deleted from store upon successful verification \\
+Short TTL              & 10-minute expiry enforced in \texttt{OtpStore} \\
+Secure generation      & \texttt{java.security.SecureRandom} (CSPRNG) \\
+Transport security     & Gmail SMTP with STARTTLS \\
+Password storage       & BCrypt hash, plaintext never stored \\
+\bottomrule
+\end{tabular}
+\caption{OTP password reset security properties}
+\end{table}
+
+% ============================================================
+\section{Core Business Workflows}
+% ============================================================
+
+\subsection{Policy Purchase Flow}
+
+\begin{enumerate}
+  \item Customer registers (\texttt{customer\_account} created; \texttt{customer\_id} = NULL).
+  \item Customer logs in; receives JWT.
+  \item Customer selects a plan and submits \texttt{POST /api/portal/purchase}.
+  \item Under a single \texttt{@Transactional} transaction:
+    \begin{enumerate}
+      \item If \texttt{customer\_id} is NULL: create a \texttt{hjb\_customer} row; link to \texttt{customer\_account}.
+      \item Create a \texttt{hjb\_policy} row (supertype).
+      \item Create the subtype row (\texttt{hjb\_autopolicy} or \texttt{hjb\_homepolicy}).
+      \item Generate the corresponding invoice.
+      \item Update \texttt{customer.Cust\_Type} (A/H → B if both product lines now held).
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Payment Flow (Concurrency-Safe)}
+
+\begin{enumerate}
+  \item Customer submits \texttt{POST /api/portal/payments} \{invoiceId, amount, method\}.
+  \item Service opens a \texttt{REPEATABLE\_READ} transaction.
+  \item Verifies the invoice belongs to the authenticated customer (prevents IDOR).
+  \item Sums existing payments; checks \(\text{paid} + \text{amount} \le \text{invoice total}\) (prevents overpayment).
+  \item Inserts the payment record; commits.
+\end{enumerate}
+
+\subsection{Daily Policy Expiry}
+
+A Spring \texttt{@Scheduled} task runs at 01:00 every night:
+
+\begin{lstlisting}[language=Java,caption={PolicyScheduler daily expiry job}]
+@Scheduled(cron = "0 0 1 * * *")
+public void expireOverduePolicies() {
+    policyMapper.expireOverdue();  // UPDATE hjb_policy SET Status='E' WHERE EDATE < CURDATE()
+}
+\end{lstlisting}
+
+% ============================================================
+\section{Lessons Learned}
+% ============================================================
+
+\subsection{Database Design}
+
+\begin{itemize}
+  \item \textbf{Supertype/subtype over single-table inheritance}: Keeping shared attributes in \texttt{hjb\_policy} and type-specific rows in \texttt{hjb\_autopolicy}/\texttt{hjb\_homepolicy} eliminated nullable columns and made \texttt{UNION ALL} queries clean. The trade-off is a two-table join for every policy read, which is acceptable given the low cardinality.
+
+  \item \textbf{Explicit FK indexes are mandatory in InnoDB}: InnoDB does not index FK columns by default. Discovering during load testing that every portal page triggered multiple full-table scans reinforced the habit of running \texttt{EXPLAIN} on all hot-path queries immediately after schema creation.
+
+  \item \textbf{Auto-increment ranges prevent UNION collisions}: Starting auto-invoice IDs at 10001 and home-invoice IDs at 20001 is a simple but effective convention that avoids row ambiguity when the two tables are combined in reporting queries.
+
+  \item \textbf{Separating account from customer}: Decoupling \texttt{customer\_account} from \texttt{hjb\_customer} (the FK becomes non-null only after first purchase) accurately modelled the real business process and allowed users to register and explore the system before committing to a policy.
+\end{itemize}
+
+\subsection{Application Architecture}
+
+\begin{itemize}
+  \item \textbf{Stateless JWT simplifies horizontal scaling}: No session store is needed; any backend instance can validate a token. The downside---token revocation requires additional infrastructure (e.g., a blocklist)---is acceptable for a course project scope.
+
+  \item \textbf{Role-based routing guards}: Enforcing access at both the Spring Security URL level \emph{and} the Vue Router navigation guard level provided defence in depth. Frontend guards give immediate UX feedback; backend guards are the authoritative enforcement point.
+
+  \item \textbf{\texttt{@Transactional} isolation level matters}: Using the default \texttt{READ\_COMMITTED} for all transactions would allow two concurrent payment requests to both read the same ``unpaid'' total and both succeed, leading to overpayment. Explicitly selecting \texttt{REPEATABLE\_READ} for the payment service solved this with minimal code change.
+
+  \item \textbf{Global exception handler}: Centralising error handling in \texttt{GlobalExceptionHandler} kept controllers clean and ensured consistent \texttt{Result\{\}} error responses without exposing internal stack traces.
+\end{itemize}
+
+\subsection{Security}
+
+\begin{itemize}
+  \item \textbf{OTP anti-enumeration}: The initial naive password-reset design (username + email check) was rejected because it allows an attacker who knows a victim's username to confirm whether a given email is registered. The OTP flow eliminates this by not differentiating between ``wrong username'', ``wrong email'', and ``no match''.
+
+  \item \textbf{Prepared statements as the only SQL interface}: Enforcing the \texttt{\#\{\}} binding convention in all MyBatis mappers from day one prevented any SQL injection surface from being introduced, even accidentally, during rapid development.
+\end{itemize}
+
+% ============================================================
+\section{Conclusion}
+% ============================================================
+
+The NICE Insurance Management System (HJB Insurance) successfully delivers a production-grade, full-stack insurance portal that digitalises both the customer self-service and employee management workflows. The relational schema applies supertype/subtype table inheritance, careful referential integrity constraints, and explicit indexing to achieve both data correctness and query performance. The Spring Boot backend enforces security at multiple layers (JWT, role-based URL authorisation, prepared statements, BCrypt, transactional isolation), while the Vue 3 frontend provides a responsive and role-aware user experience. Three bonus features---index optimisation with verified \texttt{EXPLAIN} comparisons, an ECharts statistical dashboard, and an OTP-secured password reset flow---demonstrate applied database engineering beyond the base requirements.
+
+\vspace{1cm}
+\noindent\rule{\linewidth}{0.4pt}
+\begin{center}
+\small\color{gray}
+NYU CS-GY 6083-B \quad Principles of Database Systems \quad Part II Report \\
+Submitted: May 1, 2026 \quad Production: \href{https://nice-insurance.vercel.app}{nice-insurance.vercel.app}
+\end{center}
+
+\end{document}

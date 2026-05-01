@@ -70,6 +70,7 @@ export const invoiceApi = {
 // ========== Payment ==========
 export const paymentApi = {
   findAll: () => request.get('/payments'),
+  search: (method) => request.get('/payments/search', { params: { method } }),
   findById: (id) => request.get(`/payments/${id}`),
   add: (data) => request.post('/payments', data),
   update: (data) => request.put('/payments', data),
@@ -101,6 +102,11 @@ export const planApi = {
   add:        (data) => request.post('/admin/plans', data),
   update:     (data) => request.put('/admin/plans', data),
   delete:     (id)   => request.delete(`/admin/plans/${id}`)
+}
+
+// ========== Stats (Dashboard) ==========
+export const statsApi = {
+  get: () => request.get('/admin/stats')
 }
 
 // ========== Vehicle-Driver ==========

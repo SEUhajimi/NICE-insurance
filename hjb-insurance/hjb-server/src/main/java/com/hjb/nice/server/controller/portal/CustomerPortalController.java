@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-@Tag(name = "客户门户", description = "客户端：查看自己的保单、账单，发起支付（需 CUSTOMER Token）")
+@Tag(name = "Customer Portal", description = "Customer-facing endpoints: view own policies and invoices, make payments (requires CUSTOMER Token)")
 @SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/api/portal")
@@ -31,44 +31,44 @@ public class CustomerPortalController {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-    @Operation(summary = "查看我的资料")
+    @Operation(summary = "View my profile")
     @GetMapping("/my-profile")
     public Result<UserProfile> myProfile() {
         return Result.success(portalService.getProfile(currentUsername()));
     }
 
-    @Operation(summary = "购买保险（创建保单 + 账单，自动维护 custType）")
+    @Operation(summary = "Purchase insurance (creates policy and invoice, updates custType automatically)")
     @PostMapping("/purchase")
     public Result<Void> purchasePolicy(@RequestBody PurchaseRequest req) {
         portalService.purchasePolicy(currentUsername(), req);
         return Result.success();
     }
 
-    @Operation(summary = "查看我的汽车保单")
+    @Operation(summary = "View my auto policies")
     @GetMapping("/my-policies/auto")
     public Result<List<AutoPolicy>> myAutoPolicies() {
         return Result.success(portalService.getAutoPolicies(currentUsername()));
     }
 
-    @Operation(summary = "查看我的房屋保单")
+    @Operation(summary = "View my home policies")
     @GetMapping("/my-policies/home")
     public Result<List<HomePolicy>> myHomePolicies() {
         return Result.success(portalService.getHomePolicies(currentUsername()));
     }
 
-    @Operation(summary = "查看我的账单（含支付状态）")
+    @Operation(summary = "View my invoices (including payment status)")
     @GetMapping("/my-invoices")
     public Result<List<InvoiceWithStatus>> myInvoices() {
         return Result.success(portalService.getInvoices(currentUsername()));
     }
 
-    @Operation(summary = "查看我的支付历史")
+    @Operation(summary = "View my payment history")
     @GetMapping("/my-payments")
     public Result<List<PaymentView>> myPayments() {
         return Result.success(portalService.getPayments(currentUsername()));
     }
 
-    @Operation(summary = "为指定 Invoice 发起支付（需指定 type: AUTO 或 HOME）")
+    @Operation(summary = "Make a payment for a specified invoice (type must be AUTO or HOME)")
     @PostMapping("/payments")
     public Result<Void> makePayment(@RequestBody PaymentRequest req) {
         portalService.makePayment(currentUsername(), req);

@@ -9,28 +9,28 @@ import lombok.Data;
 @Data
 public class CustomerRegisterRequest {
 
-    @NotBlank(message = "用户名不能为空")
-    @Size(min = 3, max = 50, message = "用户名长度须在 3-50 个字符之间")
+    @NotBlank(message = "Username is required")
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String username;
 
-    @NotBlank(message = "密码不能为空")
-    @Size(min = 8, message = "密码至少 8 位")
+    @NotBlank(message = "Password is required")
+    @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
 
-    @NotBlank(message = "邮箱不能为空")
-    @Email(message = "邮箱格式不正确")
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
     private String email;
 
-    @NotBlank(message = "名字不能为空")
+    @NotBlank(message = "First name is required")
     private String fname;
 
-    @NotBlank(message = "姓氏不能为空")
+    @NotBlank(message = "Last name is required")
     private String lname;
 
-    @Pattern(regexp = "^[MF]$", message = "性别须为 M 或 F")
+    @Pattern(regexp = "^[MF]$", message = "Gender must be M or F")
     private String gender;
 
-    @Pattern(regexp = "^[SMW]$", message = "婚姻状况须为 S、M 或 W")
+    @Pattern(regexp = "^[SMW]$", message = "Marital status must be S, M, or W")
     private String maritalStatus;
 
     private String addrStreet;

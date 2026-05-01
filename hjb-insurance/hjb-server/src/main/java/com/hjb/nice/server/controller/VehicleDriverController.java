@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@Tag(name = "管理端 - 车辆驾驶员关联", description = "查询车辆-驾驶员关联（需 EMPLOYEE Token）；driver 现在直接持有 VIN 外键，关联通过 hjb_driver 查询")
+@Tag(name = "Admin - Vehicle-Driver Association", description = "Query vehicle-driver associations (requires EMPLOYEE Token); driver now holds the VIN foreign key directly, associations are queried via hjb_driver")
 @SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/api/vehicle-drivers")

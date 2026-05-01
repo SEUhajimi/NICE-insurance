@@ -11,7 +11,7 @@
       </el-input>
     </div>
 
-    <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
+    <el-table :data="pagedData" stripe style="width: 100%" v-loading="loading">
       <el-table-column prop="hpId" label="Policy ID" width="100" />
       <el-table-column prop="hjbCustomerCustId" label="Customer ID" width="110" />
       <el-table-column prop="sdate" label="Start Date" />
@@ -33,6 +33,12 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <div class="pagination-bar">
+      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50]" :total="filteredData.length"
+        layout="total, sizes, prev, pager, next" background />
+    </div>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? 'Edit Home Policy' : 'Add Home Policy'" width="500">
       <el-form :model="form" label-width="120px">
@@ -64,7 +70,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import { homePolicyApi } from '../api'
@@ -83,6 +89,10 @@ const filteredData = computed(() => {
     (r.status === 'C' ? 'current' : 'expired').includes(q)
   )
 })
+const currentPage = ref(1)
+const pageSize    = ref(10)
+const pagedData   = computed(() => filteredData.value.slice((currentPage.value-1)*pageSize.value, currentPage.value*pageSize.value))
+watch(search, () => { currentPage.value = 1 })
 
 const defaultForm = { hpId: null, sdate: '', edate: '', amount: 0, status: 'C', hjbCustomerCustId: null }
 const form = ref({ ...defaultForm })
@@ -115,4 +125,5 @@ onMounted(loadData)
 .page { max-width: 1200px; }
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .page-title { font-size: 28px; font-weight: 700; }
+.pagination-bar { display: flex; justify-content: flex-end; margin-top: 16px; }
 </style>

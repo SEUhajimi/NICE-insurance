@@ -18,12 +18,12 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("HJB Insurance API")
-                        .description("HJB 保险系统接口文档\n\n" +
-                                "**使用说明：**\n" +
-                                "1. 调用 `/api/auth/employee/login` 或 `/api/auth/customer/login` 获取 Token\n" +
-                                "2. 点击右上角 **Authorize** 按钮，输入 Token 即可调用受保护接口")
+                        .description("HJB Insurance System API Documentation\n\n" +
+                                "**Usage Instructions:**\n" +
+                                "1. Call `/api/auth/employee/login` or `/api/auth/customer/login` to obtain a Token\n" +
+                                "2. Click the **Authorize** button in the top-right corner and enter the Token to access protected endpoints")
                         .version("1.0.0"))
-                // 全局添加 Bearer Token 认证
+                // Add Bearer Token authentication globally
                 .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH))
                 .components(new Components()
                         .addSecuritySchemes(BEARER_AUTH,

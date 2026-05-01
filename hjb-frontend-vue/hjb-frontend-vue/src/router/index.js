@@ -14,6 +14,7 @@ const router = createRouter({
     { path: '/portal', name: 'Portal', component: () => import('../views/CustomerPortalView.vue'), meta: { layout: 'portal', role: 'CUSTOMER' } },
 
     // Admin views
+    { path: '/dashboard',      name: 'Dashboard',      component: () => import('../views/DashboardView.vue') },
     { path: '/customers',       name: 'Customers',      component: () => import('../views/CustomerView.vue') },
     { path: '/auto-policies',   name: 'AutoPolicies',   component: () => import('../views/AutoPolicyView.vue') },
     { path: '/home-policies',   name: 'HomePolicies',   component: () => import('../views/HomePolicyView.vue') },

@@ -26,25 +26,47 @@
 
           <!-- Inline Reset Password Panel -->
           <div v-else class="reset-panel">
-            <div class="reset-back" @click="showReset = false">← Back to Sign In</div>
+            <div class="reset-back" @click="cancelReset">← Back to Sign In</div>
             <h3 class="reset-title">Reset Password</h3>
-            <p class="reset-hint">Enter your username and registered email to set a new password.</p>
-            <el-form :model="resetForm" label-position="top" class="auth-form">
-              <el-form-item label="Username">
-                <el-input v-model="resetForm.username" placeholder="Your username" />
-              </el-form-item>
-              <el-form-item label="Email">
-                <el-input v-model="resetForm.email" placeholder="Registered email" />
-              </el-form-item>
-              <el-form-item label="New Password">
-                <el-input v-model="resetForm.newPassword" type="password" show-password placeholder="New password" />
-              </el-form-item>
-              <div v-if="resetError" class="error-msg">{{ resetError }}</div>
-              <div v-if="resetSuccess" class="success-msg">Password reset! Please sign in.</div>
-              <el-button type="primary" class="submit-btn" :loading="resetLoading" @click="handleReset">
-                Reset Password
-              </el-button>
-            </el-form>
+
+            <!-- Step 1: request OTP -->
+            <div v-if="resetStep === 1">
+              <p class="reset-hint">Enter your username and registered email. We'll send a 6-digit verification code.</p>
+              <el-form :model="resetForm" label-position="top" class="auth-form">
+                <el-form-item label="Username">
+                  <el-input v-model="resetForm.username" placeholder="Your username" />
+                </el-form-item>
+                <el-form-item label="Email">
+                  <el-input v-model="resetForm.email" placeholder="Registered email" />
+                </el-form-item>
+                <div v-if="resetError" class="error-msg">{{ resetError }}</div>
+                <el-button type="primary" class="submit-btn" :loading="resetLoading" @click="handleSendOtp">
+                  Send Verification Code
+                </el-button>
+              </el-form>
+            </div>
+
+            <!-- Step 2: enter OTP + new password -->
+            <div v-else>
+              <p class="reset-hint">
+                A 6-digit code was sent to <strong>{{ resetForm.email }}</strong>.
+                <span v-if="countdown > 0" class="countdown"> Resend in {{ countdown }}s</span>
+                <span v-else class="resend-link" @click="handleSendOtp">Resend Code</span>
+              </p>
+              <el-form :model="resetForm" label-position="top" class="auth-form">
+                <el-form-item label="Verification Code">
+                  <el-input v-model="resetForm.otp" placeholder="6-digit code" maxlength="6" />
+                </el-form-item>
+                <el-form-item label="New Password">
+                  <el-input v-model="resetForm.newPassword" type="password" show-password placeholder="At least 8 characters" />
+                </el-form-item>
+                <div v-if="resetError" class="error-msg">{{ resetError }}</div>
+                <div v-if="resetSuccess" class="success-msg">Password reset! Please sign in.</div>
+                <el-button type="primary" class="submit-btn" :loading="resetLoading" @click="handleReset">
+                  Reset Password
+                </el-button>
+              </el-form>
+            </div>
           </div>
         </el-tab-pane>
 
@@ -115,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import request from '../api/request.js'
 
@@ -176,6 +198,16 @@ const regLoading = ref(false)
 async function handleRegister() {
   regError.value = ''
   regSuccess.value = false
+
+  if (!regForm.value.fname.trim()) {
+    regError.value = 'First name is required'
+    return
+  }
+  if (!regForm.value.lname.trim()) {
+    regError.value = 'Last name is required'
+    return
+  }
+
   regLoading.value = true
   try {
     const res = await request.post('/auth/customer/register', regForm.value)
@@ -186,18 +218,63 @@ async function handleRegister() {
     } else {
       regError.value = res.msg || 'Registration failed'
     }
-  } catch {
-    regError.value = 'Registration failed. Please try again.'
+  } catch (e) {
+    regError.value = e?.response?.data?.msg || e?.message || 'Registration failed. Please try again.'
   } finally {
     regLoading.value = false
   }
 }
 
-// Reset Password
-const resetForm = ref({ username: '', email: '', newPassword: '' })
+// Reset Password (two-step: send OTP → verify OTP)
+const resetForm = ref({ username: '', email: '', otp: '', newPassword: '' })
+const resetStep = ref(1)
 const resetError = ref('')
 const resetSuccess = ref(false)
 const resetLoading = ref(false)
+const countdown = ref(0)
+let countdownTimer = null
+
+function startCountdown() {
+  countdown.value = 60
+  clearInterval(countdownTimer)
+  countdownTimer = setInterval(() => {
+    countdown.value--
+    if (countdown.value <= 0) clearInterval(countdownTimer)
+  }, 1000)
+}
+
+function cancelReset() {
+  showReset.value = false
+  resetStep.value = 1
+  resetForm.value = { username: '', email: '', otp: '', newPassword: '' }
+  resetError.value = ''
+  resetSuccess.value = false
+  clearInterval(countdownTimer)
+  countdown.value = 0
+}
+
+onUnmounted(() => clearInterval(countdownTimer))
+
+async function handleSendOtp() {
+  resetError.value = ''
+  resetLoading.value = true
+  try {
+    const res = await request.post('/auth/customer/send-otp', {
+      username: resetForm.value.username,
+      email: resetForm.value.email
+    })
+    if (res.code === 1) {
+      resetStep.value = 2
+      startCountdown()
+    } else {
+      resetError.value = res.msg || 'Failed to send code'
+    }
+  } catch (e) {
+    resetError.value = e?.response?.data?.msg || e?.message || 'Failed to send code. Check your username and email.'
+  } finally {
+    resetLoading.value = false
+  }
+}
 
 async function handleReset() {
   resetError.value = ''
@@ -208,12 +285,12 @@ async function handleReset() {
     if (res.code === 1) {
       resetSuccess.value = true
       loginForm.value.username = resetForm.value.username
-      setTimeout(() => { showReset.value = false }, 1500)
+      setTimeout(() => { cancelReset() }, 1500)
     } else {
       resetError.value = res.msg || 'Reset failed'
     }
-  } catch {
-    resetError.value = 'Reset failed. Check your username and email.'
+  } catch (e) {
+    resetError.value = e?.response?.data?.msg || e?.message || 'Reset failed. Please check your verification code.'
   } finally {
     resetLoading.value = false
   }
@@ -279,4 +356,7 @@ async function handleReset() {
 
 .error-msg { color: #f87171; font-size: 13px; text-align: center; margin: 4px 0; }
 .success-msg { color: #4ade80; font-size: 13px; text-align: center; margin: 4px 0; }
+.countdown { color: #94a3b8; font-size: 12px; margin-left: 4px; }
+.resend-link { color: #60a5fa; font-size: 12px; margin-left: 4px; cursor: pointer; }
+.resend-link:hover { text-decoration: underline; }
 </style>

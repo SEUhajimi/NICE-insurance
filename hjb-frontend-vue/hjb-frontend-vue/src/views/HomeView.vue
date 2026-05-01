@@ -11,7 +11,7 @@
       </el-input>
     </div>
 
-    <el-table :data="filteredData" stripe style="width: 100%" v-loading="loading">
+    <el-table :data="pagedData" stripe style="width: 100%" v-loading="loading">
       <el-table-column prop="homeId" label="Home ID" width="90" />
       <el-table-column prop="hjbHomepolicyHpId" label="Policy ID" width="90" />
       <el-table-column prop="pdate" label="Purchase Date" width="120" />
@@ -41,6 +41,12 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <div class="pagination-bar">
+      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50]" :total="filteredData.length"
+        layout="total, sizes, prev, pager, next" background />
+    </div>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? 'Edit Home' : 'Add Home'" width="600">
       <el-form :model="form" label-width="130px">
@@ -100,7 +106,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import { homeApi } from '../api'
@@ -120,6 +126,11 @@ const filteredData = computed(() => {
     (HOME_TYPES[r.homeType] || '').includes(q)
   )
 })
+
+const currentPage = ref(1)
+const pageSize    = ref(10)
+const pagedData   = computed(() => filteredData.value.slice((currentPage.value-1)*pageSize.value, currentPage.value*pageSize.value))
+watch(search, () => { currentPage.value = 1 })
 
 const defaultForm = { homeId: null, pdate: '', pvalue: 0, area: 0, homeType: 'S', afn: 0, hss: 0, sp: null, basement: 0, hjbHomepolicyHpId: null }
 const form = ref({ ...defaultForm })
@@ -152,4 +163,5 @@ onMounted(loadData)
 .page { max-width: 1200px; }
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .page-title { font-size: 28px; font-weight: 700; }
+.pagination-bar { display: flex; justify-content: flex-end; margin-top: 16px; }
 </style>

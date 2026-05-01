@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"E:\\\\GitHub-Repos\\\\NICE\" -Recurse -Filter \"*.sql\")",
+      "Bash(Select-Object FullName)",
+      "Read(//e/GitHub-Repos/NICE/**)",
+      "Bash(dir \"E:\\\\GitHub-Repos\\\\NICE\")"
+    ]
+  }
+}

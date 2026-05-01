@@ -35,23 +35,23 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // 放行所有 CORS 预检请求
+                // Allow all CORS preflight requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                // 公开：登录、注册
-                .requestMatchers("/api/auth/**").permitAll()
-                // 公开：套餐列表（官网和门户均可读取）
+                // Public: login and registration
+                    .requestMatchers("/api/auth/**", "/auth/**").permitAll()
+                // Public: plan list (accessible by the landing page and customer portal)
                 .requestMatchers(HttpMethod.GET, "/api/plans").permitAll()
-                // 公开：Swagger UI
+                // Public: Swagger UI
                 .requestMatchers(
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/v3/api-docs/**"
                 ).permitAll()
-                // 客户门户：仅 CUSTOMER 角色
+                // Customer portal: CUSTOMER role only
                 .requestMatchers("/api/portal/**").hasRole("CUSTOMER")
-                // 管理端专属：仅 EMPLOYEE 角色
+                // Admin endpoints: EMPLOYEE role only
                 .requestMatchers("/api/admin/**").hasRole("EMPLOYEE")
-                // 现有 CRUD 接口：仅 EMPLOYEE 角色（管理员数据操作）
+                // Existing CRUD endpoints: EMPLOYEE role only (admin data operations)
                 .requestMatchers("/api/**").hasRole("EMPLOYEE")
                 .anyRequest().authenticated()
             )

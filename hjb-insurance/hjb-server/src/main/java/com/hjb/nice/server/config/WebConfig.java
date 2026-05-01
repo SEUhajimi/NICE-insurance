@@ -2,7 +2,7 @@ package com.hjb.nice.server.config;
 
 import org.springframework.context.annotation.Configuration;
 
-// CORS 配置已迁移至 SecurityConfig#corsConfigurationSource()
+// CORS configuration has been moved to SecurityConfig#corsConfigurationSource()
 @Configuration
 public class WebConfig {
 }

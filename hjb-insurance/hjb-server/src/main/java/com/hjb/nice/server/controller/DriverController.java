@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@Tag(name = "管理端 - 驾驶员管理", description = "Driver的增删改查（需 EMPLOYEE Token）")
+@Tag(name = "Admin - Driver Management", description = "CRUD operations for Driver (requires EMPLOYEE Token)")
 @SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/api/drivers")

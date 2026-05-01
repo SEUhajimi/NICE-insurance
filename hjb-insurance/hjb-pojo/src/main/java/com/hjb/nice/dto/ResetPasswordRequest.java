@@ -8,14 +8,17 @@ import lombok.Data;
 @Data
 public class ResetPasswordRequest {
 
-    @NotBlank(message = "用户名不能为空")
+    @NotBlank(message = "Username is required")
     private String username;
 
-    @NotBlank(message = "邮箱不能为空")
-    @Email(message = "邮箱格式不正确")
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
     private String email;
 
-    @NotBlank(message = "新密码不能为空")
-    @Size(min = 8, message = "密码至少 8 位")
+    @NotBlank(message = "Verification code is required")
+    private String otp;
+
+    @NotBlank(message = "New password is required")
+    @Size(min = 8, message = "Password must be at least 8 characters")
     private String newPassword;
 }

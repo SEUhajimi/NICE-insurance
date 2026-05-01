@@ -37,14 +37,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (!jwtUtil.isTokenValid(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write("{\"code\":0,\"msg\":\"Token 无效或已过期\"}");
+            response.getWriter().write("{\"code\":0,\"msg\":\"Token is invalid or expired\"}");
             return;
         }
 
         String username = jwtUtil.extractUsername(token);
         String role = jwtUtil.extractRole(token);
 
-        // 将认证信息写入 SecurityContext
+        // Write authentication info into the SecurityContext
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 username,
                 null,

@@ -20,6 +20,9 @@ public class PaymentServiceImpl implements PaymentService {
     public List<Payment> findAll() { return paymentMapper.findAll(); }
 
     @Override
+    public List<Payment> searchByMethod(String method) { return paymentMapper.searchByMethod(method); }
+
+    @Override
     public Payment findById(Integer pId) {
         AutoPayment ap = autoPaymentMapper.findById(pId);
         if (ap != null) return toPayment(ap);
