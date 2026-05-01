@@ -21,7 +21,7 @@ public class EmailService {
         headers.setBearerAuth(apiKey);
 
         Map<String, Object> body = Map.of(
-            "from", "HJB Insurance <onboarding@resend.dev>",
+            "from", "HJB Insurance <noreply@hhlnyu.space>",
             "to", new String[]{toEmail},
             "subject", "HJB Insurance — Password Reset Code",
             "text", "Your password reset code is: " + otp +
