@@ -9,14 +9,14 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   mail:
     host: smtp.gmail.com
-    port: 465
+    port: 587
     username: ${MAIL_USER}
     password: ${MAIL_PASS}
     properties:
       mail:
         smtp:
           auth: true
-          ssl:
+          starttls:
             enable: true
 
 mybatis:
