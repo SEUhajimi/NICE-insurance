@@ -14,7 +14,7 @@ public class Customer {
     private String lname;
     private String gender;
     private String maritalStatus;
-    private String custType;
+    private String custType = "Prospect";
     private String addrStreet;
     private String addrCity;
     private String addrState;
