@@ -26,4 +26,7 @@ public interface DriverMapper {
 
     @Delete("DELETE FROM hjb_driver WHERE Driver_License = #{driverLicense}")
     void deleteById(String driverLicense);
+
+    @Delete("DELETE FROM hjb_driver WHERE HJB_VEHICLE_VIN = #{vin}")
+    void deleteByVehicleVin(@Param("vin") String vin);
 }

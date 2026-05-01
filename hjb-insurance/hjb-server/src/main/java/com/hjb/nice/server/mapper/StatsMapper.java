@@ -9,10 +9,26 @@ import java.util.Map;
 @Mapper
 public interface StatsMapper {
 
-    @Select("SELECT Policy_Type AS label, COUNT(*) AS value FROM hjb_policy GROUP BY Policy_Type")
+    @Select("""
+            SELECT label, SUM(cnt) AS value
+            FROM (
+              SELECT 'A' AS label, COUNT(*) AS cnt FROM hjb_autopolicy
+              UNION ALL
+              SELECT 'H' AS label, COUNT(*) AS cnt FROM hjb_homepolicy
+            ) t
+            GROUP BY label
+            """)
     List<Map<String, Object>> policyByType();
 
-    @Select("SELECT Status AS label, COUNT(*) AS value FROM hjb_policy GROUP BY Status")
+    @Select("""
+            SELECT label, SUM(cnt) AS value
+            FROM (
+              SELECT Status AS label, COUNT(*) AS cnt FROM hjb_autopolicy GROUP BY Status
+              UNION ALL
+              SELECT Status AS label, COUNT(*) AS cnt FROM hjb_homepolicy GROUP BY Status
+            ) t
+            GROUP BY label
+            """)
     List<Map<String, Object>> policyByStatus();
 
     @Select("SELECT Cust_Type AS label, COUNT(*) AS value FROM hjb_customer GROUP BY Cust_Type")

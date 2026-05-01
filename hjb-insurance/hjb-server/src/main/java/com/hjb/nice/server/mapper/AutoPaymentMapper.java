@@ -27,6 +27,9 @@ public interface AutoPaymentMapper {
     @Select("SELECT * FROM hjb_auto_payment WHERE HJB_AUTO_INVOICE_I_ID = #{invoiceId}")
     List<AutoPayment> findByInvoiceId(Integer invoiceId);
 
+    @Delete("DELETE FROM hjb_auto_payment WHERE HJB_AUTO_INVOICE_I_ID = #{invoiceId}")
+    void deleteByInvoiceId(@Param("invoiceId") Integer invoiceId);
+
     @Insert("INSERT INTO hjb_auto_payment(Method, HJB_AUTO_INVOICE_I_ID, Pay_Amount, Pay_Date) " +
             "VALUES(#{method}, #{hjbAutoInvoiceIId}, #{payAmount}, #{payDate})")
     @Options(useGeneratedKeys = true, keyProperty = "pId")

@@ -26,4 +26,7 @@ public interface VehicleMapper {
 
     @Delete("DELETE FROM hjb_vehicle WHERE VIN = #{vin}")
     void deleteById(String vin);
+
+    @Delete("DELETE FROM hjb_vehicle WHERE HJB_AUTOPOLICY_AP_ID = #{apId}")
+    void deleteByAutoPolicyId(@Param("apId") Integer apId);
 }

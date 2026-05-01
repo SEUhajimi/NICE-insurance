@@ -27,6 +27,9 @@ public interface HomeInvoiceMapper {
     @Select("SELECT * FROM hjb_home_invoice WHERE HJB_HOMEPOLICY_HP_ID = #{hpId}")
     List<HomeInvoice> findByHomePolicyId(Integer hpId);
 
+    @Delete("DELETE FROM hjb_home_invoice WHERE HJB_HOMEPOLICY_HP_ID = #{hpId}")
+    void deleteByHomePolicyId(@Param("hpId") Integer hpId);
+
     @Insert("INSERT INTO hjb_home_invoice(I_Date, Due, Amount, HJB_HOMEPOLICY_HP_ID) " +
             "VALUES(#{iDate}, #{due}, #{amount}, #{hjbHomepolicyHpId})")
     @Options(useGeneratedKeys = true, keyProperty = "iId")

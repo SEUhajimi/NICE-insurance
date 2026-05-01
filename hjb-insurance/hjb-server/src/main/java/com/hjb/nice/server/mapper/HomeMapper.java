@@ -27,4 +27,7 @@ public interface HomeMapper {
 
     @Delete("DELETE FROM hjb_home WHERE Home_ID = #{homeId}")
     void deleteById(Integer homeId);
+
+    @Delete("DELETE FROM hjb_home WHERE HJB_HOMEPOLICY_HP_ID = #{hpId}")
+    void deleteByHomePolicyId(@Param("hpId") Integer hpId);
 }

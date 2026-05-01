@@ -27,6 +27,9 @@ public interface HomePaymentMapper {
     @Select("SELECT * FROM hjb_home_payment WHERE HJB_HOME_INVOICE_I_ID = #{invoiceId}")
     List<HomePayment> findByInvoiceId(Integer invoiceId);
 
+    @Delete("DELETE FROM hjb_home_payment WHERE HJB_HOME_INVOICE_I_ID = #{invoiceId}")
+    void deleteByInvoiceId(@Param("invoiceId") Integer invoiceId);
+
     @Insert("INSERT INTO hjb_home_payment(Method, HJB_HOME_INVOICE_I_ID, Pay_Amount, Pay_Date) " +
             "VALUES(#{method}, #{hjbHomeInvoiceIId}, #{payAmount}, #{payDate})")
     @Options(useGeneratedKeys = true, keyProperty = "pId")

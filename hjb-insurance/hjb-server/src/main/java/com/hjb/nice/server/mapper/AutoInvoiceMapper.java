@@ -27,6 +27,9 @@ public interface AutoInvoiceMapper {
     @Select("SELECT * FROM hjb_auto_invoice WHERE HJB_AUTOPOLICY_AP_ID = #{apId}")
     List<AutoInvoice> findByAutoPolicyId(Integer apId);
 
+    @Delete("DELETE FROM hjb_auto_invoice WHERE HJB_AUTOPOLICY_AP_ID = #{apId}")
+    void deleteByAutoPolicyId(@Param("apId") Integer apId);
+
     @Insert("INSERT INTO hjb_auto_invoice(I_Date, Due, Amount, HJB_AUTOPOLICY_AP_ID) " +
             "VALUES(#{iDate}, #{due}, #{amount}, #{hjbAutopolicyApId})")
     @Options(useGeneratedKeys = true, keyProperty = "iId")
