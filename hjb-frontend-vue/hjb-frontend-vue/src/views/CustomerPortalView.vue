@@ -212,7 +212,7 @@
       <el-tab-pane label="Payment History" name="payments">
         <el-table :data="payments" stripe v-loading="loadingPayments">
           <el-table-column prop="pId" label="Payment #" width="110" />
-          <el-table-column prop="hjbInvoiceIId" label="Invoice #" width="110" />
+          <el-table-column prop="invoiceId" label="Invoice #" width="110" />
           <el-table-column prop="method" label="Method" width="120">
             <template #default="{ row }">
               <el-tag size="small">{{ row.method }}</el-tag>

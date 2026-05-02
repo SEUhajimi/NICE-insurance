@@ -3,7 +3,10 @@
     "allow": [
       "Bash(Get-ChildItem -Path \"E:\\\\GitHub-Repos\\\\NICE\" -Directory)",
       "Bash(Select-Object Name)",
-      "Bash(powershell -Command \"python -c 'import PyPDF2; r=PyPDF2.PdfReader\\(\\\\\"E:/GitHub-Repos/NICE/docs/Project_Part_II_Requirements.pdf\\\\\"\\); print\\(r.pages[0].extract_text\\(\\)\\)'\")"
+      "Bash(powershell -Command \"python -c 'import PyPDF2; r=PyPDF2.PdfReader\\(\\\\\"E:/GitHub-Repos/NICE/docs/Project_Part_II_Requirements.pdf\\\\\"\\); print\\(r.pages[0].extract_text\\(\\)\\)'\")",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
     ]
   }
 }
