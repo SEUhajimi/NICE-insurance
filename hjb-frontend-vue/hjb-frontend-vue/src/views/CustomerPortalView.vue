@@ -100,7 +100,7 @@
           </div>
 
           <el-button type="primary" size="large" :loading="purchasing"
-            :disabled="!selectedPlan" @click="submitPurchase"
+            :disabled="!selectedPlan" @click="openDetailsDialog"
             style="margin-top:28px;min-width:200px">
             Confirm Purchase
           </el-button>
@@ -130,6 +130,14 @@
                 <div><span class="pd-label">End</span> {{ p.edate }}</div>
                 <div class="policy-amount">${{ p.amount }}<span>/yr</span></div>
               </div>
+              <div v-if="vehiclesForPolicy(p.apId).length > 0" class="policy-assets">
+                <div class="assets-label">Vehicles</div>
+                <div v-for="v in vehiclesForPolicy(p.apId)" :key="v.vin" class="asset-row">
+                  <span class="asset-vin">{{ v.vin }}</span>
+                  <span class="asset-mmy">{{ v.mmy }}</span>
+                  <el-tag size="small" type="info">{{ { L: 'Leased', F: 'Financed', O: 'Owned' }[v.status] }}</el-tag>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -148,6 +156,21 @@
                 <div><span class="pd-label">Start</span> {{ p.sdate }}</div>
                 <div><span class="pd-label">End</span> {{ p.edate }}</div>
                 <div class="policy-amount">${{ p.amount }}<span>/yr</span></div>
+              </div>
+              <div v-if="homesForPolicy(p.hpId).length > 0" class="policy-assets">
+                <div v-for="h in homesForPolicy(p.hpId)" :key="h.homeId" class="home-detail-grid">
+                  <div class="assets-label">Property Details</div>
+                  <div class="asset-row"><span class="pd-label">Type</span> {{ { S: 'Single Family', M: 'Multi Family', C: 'Condo', T: 'Townhouse' }[h.homeType] }}</div>
+                  <div class="asset-row"><span class="pd-label">Value</span> ${{ h.pvalue?.toLocaleString() }}</div>
+                  <div class="asset-row"><span class="pd-label">Area</span> {{ h.area }} sqft</div>
+                  <div class="asset-row"><span class="pd-label">Purchase Date</span> {{ h.pdate }}</div>
+                  <div class="asset-row asset-tags">
+                    <el-tag v-if="h.afn" size="small" type="success">Alarm/Fire</el-tag>
+                    <el-tag v-if="h.hss" size="small" type="success">Security</el-tag>
+                    <el-tag v-if="h.sp" size="small">Pool: {{ { U: 'Underground', O: 'Overground', I: 'Indoor', M: 'Mixed' }[h.sp] }}</el-tag>
+                    <el-tag v-if="h.basement" size="small">Basement</el-tag>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -265,6 +288,101 @@
       </template>
     </el-dialog>
 
+    <!-- Purchase Details Dialog -->
+    <el-dialog v-model="purchaseDetailsDialog"
+      :title="selectedPlan?.type === 'AUTO' ? 'Vehicle & Driver Details' : 'Property Details'"
+      width="540">
+      <template v-if="selectedPlan?.type === 'AUTO'">
+        <el-form :model="detailsForm" label-width="140px">
+          <div class="details-section-label">Vehicle</div>
+          <el-form-item label="VIN" required>
+            <el-input v-model="detailsForm.vin" maxlength="17" placeholder="17-character VIN" />
+          </el-form-item>
+          <el-form-item label="Make / Model / Year" required>
+            <el-input v-model="detailsForm.mmy" placeholder="e.g. Toyota Camry 2022" />
+          </el-form-item>
+          <el-form-item label="Ownership" required>
+            <el-select v-model="detailsForm.vehicleStatus" style="width:100%">
+              <el-option label="Owned" value="O" />
+              <el-option label="Financed" value="F" />
+              <el-option label="Leased" value="L" />
+            </el-select>
+          </el-form-item>
+          <div class="details-section-label">Primary Driver</div>
+          <el-form-item label="Driver License" required>
+            <el-input v-model="detailsForm.driverLicense" />
+          </el-form-item>
+          <el-form-item label="First Name" required>
+            <el-input v-model="detailsForm.driverFname" />
+          </el-form-item>
+          <el-form-item label="Last Name" required>
+            <el-input v-model="detailsForm.driverLname" />
+          </el-form-item>
+          <el-form-item label="Date of Birth" required>
+            <el-date-picker v-model="detailsForm.driverBirthday" type="date"
+              value-format="YYYY-MM-DD" style="width:100%" />
+          </el-form-item>
+        </el-form>
+      </template>
+
+      <template v-else-if="selectedPlan?.type === 'HOME'">
+        <el-form :model="detailsForm" label-width="140px">
+          <el-form-item label="Purchase Date" required>
+            <el-date-picker v-model="detailsForm.pdate" type="date"
+              value-format="YYYY-MM-DD" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="Property Value ($)" required>
+            <el-input-number v-model="detailsForm.pvalue" :precision="2" :min="0.01"
+              :step="10000" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="Area (sqft)" required>
+            <el-input-number v-model="detailsForm.area" :min="1" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="Home Type" required>
+            <el-select v-model="detailsForm.homeType" style="width:100%">
+              <el-option label="Single Family" value="S" />
+              <el-option label="Multi Family" value="M" />
+              <el-option label="Condo" value="C" />
+              <el-option label="Townhouse" value="T" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Alarm / Fire / Natural" required>
+            <el-select v-model="detailsForm.afn" style="width:100%">
+              <el-option label="Yes" :value="1" />
+              <el-option label="No" :value="0" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Security System" required>
+            <el-select v-model="detailsForm.hss" style="width:100%">
+              <el-option label="Yes" :value="1" />
+              <el-option label="No" :value="0" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Swimming Pool">
+            <el-select v-model="detailsForm.sp" clearable style="width:100%">
+              <el-option label="Underground" value="U" />
+              <el-option label="Overground" value="O" />
+              <el-option label="Indoor" value="I" />
+              <el-option label="Mixed" value="M" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Basement" required>
+            <el-select v-model="detailsForm.basement" style="width:100%">
+              <el-option label="Yes" :value="1" />
+              <el-option label="No" :value="0" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+      </template>
+
+      <template #footer>
+        <el-button @click="purchaseDetailsDialog = false">Cancel</el-button>
+        <el-button type="primary" :loading="purchasing" @click="submitPurchase">
+          Confirm Purchase
+        </el-button>
+      </template>
+    </el-dialog>
+
     <!-- Invoice Payments Detail -->
     <el-dialog v-model="detailDialog" :title="`Invoice #${detailInvoice?.iId} — Payment Records`" width="500">
       <el-table :data="detailInvoice?.payments || []">
@@ -291,10 +409,15 @@ const invoiceFilter = ref('all')
 const profile = ref(null)
 const autoPolicies = ref([])
 const homePolicies = ref([])
+const myVehicles = ref([])
+const myHomes = ref([])
 const invoices = ref([])
 const payments = ref([])
 const loadingInvoices = ref(false)
 const loadingPayments = ref(false)
+
+const vehiclesForPolicy = (apId) => myVehicles.value.filter(v => v.hjbAutopolicyApId === apId)
+const homesForPolicy = (hpId) => myHomes.value.filter(h => h.hjbHomepolicyHpId === hpId)
 
 const unpaidCount = computed(() => invoices.value.filter(i => !i.paid).length)
 const filteredInvoices = computed(() => {
@@ -307,6 +430,23 @@ const filteredInvoices = computed(() => {
 const plans = ref([])
 const selectedPlan = ref(null)
 const purchasing = ref(false)
+
+// Purchase details dialog
+const purchaseDetailsDialog = ref(false)
+const detailsForm = ref({
+  vin: '', mmy: '', vehicleStatus: 'O',
+  driverLicense: '', driverFname: '', driverLname: '', driverBirthday: null,
+  pdate: null, pvalue: null, area: null, homeType: 'S', afn: 0, hss: 0, sp: null, basement: 0,
+})
+
+function openDetailsDialog() {
+  detailsForm.value = {
+    vin: '', mmy: '', vehicleStatus: 'O',
+    driverLicense: '', driverFname: '', driverLname: '', driverBirthday: null,
+    pdate: null, pvalue: null, area: null, homeType: 'S', afn: 0, hss: 0, sp: null, basement: 0,
+  }
+  purchaseDetailsDialog.value = true
+}
 
 const loadPlans = async () => {
   try {
@@ -328,17 +468,25 @@ const loadPlans = async () => {
 async function submitPurchase() {
   purchasing.value = true
   try {
-    await portalApi.purchasePolicy({ type: selectedPlan.value.type, amount: selectedPlan.value.amount })
+    await portalApi.purchasePolicy({
+      type: selectedPlan.value.type,
+      amount: selectedPlan.value.amount,
+      ...detailsForm.value,
+    })
     ElMessage.success('Policy purchased successfully!')
+    purchaseDetailsDialog.value = false
     selectedPlan.value = null
     activeTab.value = 'policies'
-    const [profileRes, autoRes, homeRes, invRes, payRes] = await Promise.all([
+    const [profileRes, autoRes, homeRes, vehicleRes, homeDetailRes, invRes, payRes] = await Promise.all([
       portalApi.myProfile(), portalApi.myAutoPolicies(), portalApi.myHomePolicies(),
+      portalApi.myVehicles(), portalApi.myHomes(),
       portalApi.myInvoices(), portalApi.myPayments()
     ])
     profile.value = profileRes.data
     autoPolicies.value = autoRes.data || []
     homePolicies.value = homeRes.data || []
+    myVehicles.value = vehicleRes.data || []
+    myHomes.value = homeDetailRes.data || []
     invoices.value = invRes.data || []
     payments.value = payRes.data || []
   } catch (e) {
@@ -366,14 +514,18 @@ const detailInvoice = ref(null)
 onMounted(async () => {
   loadPlans()
 
-  const [profileRes, autoRes, homeRes] = await Promise.all([
+  const [profileRes, autoRes, homeRes, vehicleRes, homeDetailRes] = await Promise.all([
     portalApi.myProfile(),
     portalApi.myAutoPolicies(),
     portalApi.myHomePolicies(),
+    portalApi.myVehicles(),
+    portalApi.myHomes(),
   ])
   profile.value = profileRes.data
   autoPolicies.value = autoRes.data || []
   homePolicies.value = homeRes.data || []
+  myVehicles.value = vehicleRes.data || []
+  myHomes.value = homeDetailRes.data || []
 
   loadingInvoices.value = true
   loadingPayments.value = true
@@ -513,4 +665,30 @@ async function submitPayment() {
 .empty-state { text-align: center; padding: 48px; color: var(--text-secondary); }
 .tab-badge { margin-left: 6px; }
 .portal-tabs { margin-top: 0; }
+/* Policy asset details */
+.policy-assets {
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.assets-label {
+  font-size: 11px; font-weight: 600; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+}
+.asset-row {
+  font-size: 13px; color: var(--text-secondary);
+  display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap;
+}
+.asset-vin { font-family: monospace; font-weight: 600; color: var(--text); font-size: 12px; }
+.asset-mmy { color: var(--text); }
+.home-detail-grid { display: flex; flex-direction: column; gap: 4px; }
+.asset-tags { gap: 4px; margin-top: 4px; }
+
+.details-section-label {
+  font-size: 11px; font-weight: 600; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.6px;
+  margin: 0 0 12px 0; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.details-section-label + .el-form-item { margin-top: 0; }
+.details-section-label:not(:first-child) { margin-top: 20px; }
 </style>

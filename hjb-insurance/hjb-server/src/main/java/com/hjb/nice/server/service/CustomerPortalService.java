@@ -1,8 +1,10 @@
 package com.hjb.nice.server.service;
 
 import com.hjb.nice.entity.AutoPolicy;
+import com.hjb.nice.entity.Home;
 import com.hjb.nice.entity.HomePolicy;
 import com.hjb.nice.entity.PaymentView;
+import com.hjb.nice.entity.Vehicle;
 import com.hjb.nice.server.controller.portal.CustomerPortalController.InvoiceWithStatus;
 import com.hjb.nice.server.controller.portal.CustomerPortalController.PaymentRequest;
 import com.hjb.nice.server.controller.portal.CustomerPortalController.PurchaseRequest;
@@ -15,6 +17,8 @@ public interface CustomerPortalService {
     void purchasePolicy(String username, PurchaseRequest req);
     List<AutoPolicy> getAutoPolicies(String username);
     List<HomePolicy> getHomePolicies(String username);
+    List<Vehicle> getVehicles(String username);
+    List<Home> getHomes(String username);
     List<InvoiceWithStatus> getInvoices(String username);
     List<PaymentView> getPayments(String username);
     void makePayment(String username, PaymentRequest req);

@@ -8,6 +8,7 @@ import com.hjb.nice.server.exception.NotFoundException;
 import com.hjb.nice.server.exception.UnauthorizedException;
 import com.hjb.nice.server.exception.ValidationException;
 import com.hjb.nice.server.mapper.*;
+import org.springframework.util.StringUtils;
 import com.hjb.nice.server.service.CustomerPortalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,9 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
     @Autowired private HomeInvoiceMapper homeInvoiceMapper;
     @Autowired private AutoPaymentMapper autoPaymentMapper;
     @Autowired private HomePaymentMapper homePaymentMapper;
+    @Autowired private VehicleMapper vehicleMapper;
+    @Autowired private DriverMapper driverMapper;
+    @Autowired private HomeMapper homeMapper;
 
     private CustomerAccount getAccount(String username) {
         CustomerAccount account = customerAccountMapper.findByUsername(username);
@@ -104,6 +108,25 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
             invoice.setAmount(req.getAmount());
             invoice.setHjbAutopolicyApId(policy.getApId());
             autoInvoiceMapper.insertAutoId(invoice);
+
+            if (StringUtils.hasText(req.getVin())) {
+                Vehicle vehicle = new Vehicle();
+                vehicle.setVin(req.getVin().toUpperCase().trim());
+                vehicle.setMmy(req.getMmy());
+                vehicle.setStatus(req.getVehicleStatus());
+                vehicle.setHjbAutopolicyApId(policy.getApId());
+                vehicleMapper.insert(vehicle);
+
+                if (StringUtils.hasText(req.getDriverLicense())) {
+                    Driver driver = new Driver();
+                    driver.setDriverLicense(req.getDriverLicense().trim());
+                    driver.setFname(req.getDriverFname());
+                    driver.setLname(req.getDriverLname());
+                    driver.setBirthday(req.getDriverBirthday());
+                    driver.setHjbVehicleVin(vehicle.getVin());
+                    driverMapper.insert(driver);
+                }
+            }
         } else {
             HomePolicy policy = new HomePolicy();
             policy.setSdate(today);
@@ -119,6 +142,20 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
             invoice.setAmount(req.getAmount());
             invoice.setHjbHomepolicyHpId(policy.getHpId());
             homeInvoiceMapper.insertAutoId(invoice);
+
+            if (req.getPvalue() != null) {
+                Home home = new Home();
+                home.setPdate(req.getPdate());
+                home.setPvalue(req.getPvalue());
+                home.setArea(req.getArea());
+                home.setHomeType(req.getHomeType());
+                home.setAfn(req.getAfn());
+                home.setHss(req.getHss());
+                home.setSp(req.getSp());
+                home.setBasement(req.getBasement());
+                home.setHjbHomepolicyHpId(policy.getHpId());
+                homeMapper.insert(home);
+            }
         }
 
         boolean hasAuto = !autoPolicyMapper.findByCustomerId(custId).isEmpty();
@@ -138,6 +175,26 @@ public class CustomerPortalServiceImpl implements CustomerPortalService {
         CustomerAccount account = getAccount(username);
         if (account.getCustomerId() == null) return List.of();
         return homePolicyMapper.findByCustomerId(account.getCustomerId());
+    }
+
+    @Override
+    public List<Vehicle> getVehicles(String username) {
+        CustomerAccount account = getAccount(username);
+        if (account.getCustomerId() == null) return List.of();
+        List<Vehicle> vehicles = new ArrayList<>();
+        autoPolicyMapper.findByCustomerId(account.getCustomerId())
+                .forEach(ap -> vehicles.addAll(vehicleMapper.findByAutoPolicyId(ap.getApId())));
+        return vehicles;
+    }
+
+    @Override
+    public List<Home> getHomes(String username) {
+        CustomerAccount account = getAccount(username);
+        if (account.getCustomerId() == null) return List.of();
+        List<Home> homes = new ArrayList<>();
+        homePolicyMapper.findByCustomerId(account.getCustomerId())
+                .forEach(hp -> homes.addAll(homeMapper.findByHomePolicyId(hp.getHpId())));
+        return homes;
     }
 
     @Override

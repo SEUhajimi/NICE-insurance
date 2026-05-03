@@ -1,8 +1,10 @@
 package com.hjb.nice.server.controller.portal;
 
 import com.hjb.nice.entity.AutoPolicy;
+import com.hjb.nice.entity.Home;
 import com.hjb.nice.entity.HomePolicy;
 import com.hjb.nice.entity.PaymentView;
+import com.hjb.nice.entity.Vehicle;
 import com.hjb.nice.result.Result;
 import com.hjb.nice.server.service.CustomerPortalService;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -56,6 +58,18 @@ public class CustomerPortalController {
         return Result.success(portalService.getHomePolicies(currentUsername()));
     }
 
+    @Operation(summary = "View my vehicles (across all auto policies)")
+    @GetMapping("/my-vehicles")
+    public Result<List<Vehicle>> myVehicles() {
+        return Result.success(portalService.getVehicles(currentUsername()));
+    }
+
+    @Operation(summary = "View my homes (across all home policies)")
+    @GetMapping("/my-homes")
+    public Result<List<Home>> myHomes() {
+        return Result.success(portalService.getHomes(currentUsername()));
+    }
+
     @Operation(summary = "View my invoices (including payment status)")
     @GetMapping("/my-invoices")
     public Result<List<InvoiceWithStatus>> myInvoices() {
@@ -95,6 +109,23 @@ public class CustomerPortalController {
     public static class PurchaseRequest {
         private String type;
         private BigDecimal amount;
+        // AUTO fields
+        private String vin;
+        private String mmy;
+        private String vehicleStatus;
+        private String driverLicense;
+        private String driverFname;
+        private String driverLname;
+        private LocalDate driverBirthday;
+        // HOME fields
+        private LocalDate pdate;
+        private BigDecimal pvalue;
+        private Integer area;
+        private String homeType;
+        private Integer afn;
+        private Integer hss;
+        private String sp;
+        private Integer basement;
     }
 
     @Data

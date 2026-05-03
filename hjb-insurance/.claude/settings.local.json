@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"E:\\\\GitHub-Repos\\\\NICE\\\\hjb-insurance\" -Directory)",
+      "Bash(Select-Object Name)"
+    ]
+  }
+}
